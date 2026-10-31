@@ -6,6 +6,7 @@ def main():
     logging.debug(f"Program ended!")
 
 if __name__ == "__main__":
+    
     # Configure logging
     logging.basicConfig(
         level=logging.DEBUG,
