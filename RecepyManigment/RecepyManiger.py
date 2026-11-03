@@ -4,6 +4,7 @@ import os
 import sys
 
 import CreateARecipe
+import DeleteARecipe
 # Move up one directory to 'my_project/'
 parent_dir = os.path.join(os.path.dirname(__file__), '..')
 sys.path.insert(0, os.path.abspath(parent_dir))
@@ -24,7 +25,7 @@ def Main():
     Action = input("What would you like to do? ('CREATE' - Create new recipe, 'DELETE' - delete existing recipes, 'Add Steps' - add steps to existing recipe), 'Delete Steps' delete steps from existing recipe): ")
     logging.debug(f"Action selected: {Action}")
 
-    if Action == "CREATE":
+    if Action == "CREATE" or Action == "C":
         logging.debug(f"Creating new recipe.")
 
         # asking user for basic input information
@@ -37,13 +38,14 @@ def Main():
         # creating the recipe
         CreateARecipe.CreateRecipe(RecipeName, NumberOfSteps)
 
-    if Action == "DELETE":
+    if Action == "DELETE" or Action == "D":
         logging.debug(f"Deleting existing recipe.")
 
         # asking user for the recipe ID to delete
         RecipeID = int(input("Enter the ID of the recipe to delete (INT): "))
         logging.debug(f"Recipe ID entered: {RecipeID}")
-        
+        DeleteARecipe.DeleteRecipe(RecipeID)
+
 
 if __name__ == "__main__":
     
