@@ -17,7 +17,6 @@ def main():
 if __name__ == "__main__":
     
     # Configure logging
-    # make it so that it will show what function or program is calling the log message, and the time it was called
     logging.basicConfig(
         level=logging.DEBUG,
         format='[%(levelname)s] [%(asctime)s] [%(filename)s | %(funcName)s()] %(message)s',
