@@ -6,6 +6,7 @@ import sys
 import CreateARecipe
 import DeleteARecipe
 import AddAStepToRecipe
+import DeleteAStepFromRecipe
 # Move up one directory to 'my_project/'
 parent_dir = os.path.join(os.path.dirname(__file__), '..')
 sys.path.insert(0, os.path.abspath(parent_dir))
@@ -39,7 +40,7 @@ def Main():
         # creating the recipe
         CreateARecipe.CreateRecipe(RecipeName, NumberOfSteps)
 
-    if Action == "DELETE" or Action == "D":
+    elif Action == "DELETE" or Action == "D":
         logging.debug(f"Deleting existing recipe.")
 
         # asking user for the recipe ID to delete
@@ -47,7 +48,7 @@ def Main():
         logging.debug(f"Recipe ID entered: {RecipeID}")
         DeleteARecipe.DeleteRecipe(RecipeID)
 
-    if Action == "ADDSTEP" or Action == "AS":
+    elif Action == "ADDSTEP" or Action == "AS":
         logging.debug(f"Adding steps to existing recipe.")
 
         # asking user for the recipe ID to add steps to
@@ -56,6 +57,21 @@ def Main():
         AddedStepLocation = input("Enter the step number location (or '++' if appending) (INT or STR): ")
         logging.debug(f"Step location entered: {AddedStepLocation}")
         AddAStepToRecipe.AddAStep(RecipeID, AddedStepLocation)
+
+    elif Action == "REMOVESTEP" or Action == "RS":
+        logging.debug(f"Removing steps from existing recipe.")
+
+        # asking user for the recipe ID to remove steps from
+        RecipeID = int(input("Enter the ID of the recipe to remove steps from (INT): "))
+        logging.debug(f"Recipe ID entered: {RecipeID}")
+        RemovedStepLocation = int(input("Enter the step number location to remove (INT): "))
+        logging.debug(f"Step location entered: {RemovedStepLocation}")
+        DeleteAStepFromRecipe.DeleteAStep(RecipeID, RemovedStepLocation)
+
+    else:
+        logging.error(f"Invalid action selected: {Action}. Expected 'CREATE', 'DELETE', 'ADDSTEP', or 'REMOVESTEP'.")
+        print("Invalid action. Please select 'CREATE', 'DELETE', 'ADDSTEP', or 'REMOVESTEP'.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
