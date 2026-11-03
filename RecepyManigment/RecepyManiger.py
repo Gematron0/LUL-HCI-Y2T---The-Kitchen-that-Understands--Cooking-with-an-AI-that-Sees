@@ -24,7 +24,7 @@ def Main():
 
     # asking the person what they would want to do
     logging.debug(f"Asking the person what they would want to do.")
-    Action = input("What would you like to do? ('CREATE' - Create new recipe, 'DELETE' - delete existing recipes, '(AS) ADDSTEP' - add steps to existing recipe), '(RS) REMOVESTEP' - delete steps from existing recipe): ")
+    Action = input("What would you like to do? ('CREATE' - Create new recipe, 'DELETE' - delete existing recipes, '(AS) ADDSTEP' - add steps to existing recipe), '(DS) DELETESTEP' - delete steps from existing recipe): ")
     logging.debug(f"Action selected: {Action}")
 
     if Action == "CREATE" or Action == "C":
@@ -58,7 +58,7 @@ def Main():
         logging.debug(f"Step location entered: {AddedStepLocation}")
         AddAStepToRecipe.AddAStep(RecipeID, AddedStepLocation)
 
-    elif Action == "REMOVESTEP" or Action == "RS":
+    elif Action == "DELETESTEP" or Action == "DS":
         logging.debug(f"Removing steps from existing recipe.")
 
         # asking user for the recipe ID to remove steps from
@@ -69,8 +69,8 @@ def Main():
         DeleteAStepFromRecipe.DeleteAStep(RecipeID, RemovedStepLocation)
 
     else:
-        logging.error(f"Invalid action selected: {Action}. Expected 'CREATE', 'DELETE', 'ADDSTEP', or 'REMOVESTEP'.")
-        print("Invalid action. Please select 'CREATE', 'DELETE', 'ADDSTEP', or 'REMOVESTEP'.")
+        logging.error(f"Invalid action selected: {Action}. Expected 'CREATE', 'DELETE', 'ADDSTEP', or 'DELETESTEP'.")
+        print("Invalid action. Please select 'CREATE', 'DELETE', 'ADDSTEP', or 'DELETESTEP'.")
         sys.exit(1)
 
 
