@@ -5,6 +5,7 @@ import sys
 
 import CreateARecipe
 import DeleteARecipe
+import AddAStepToRecipe
 # Move up one directory to 'my_project/'
 parent_dir = os.path.join(os.path.dirname(__file__), '..')
 sys.path.insert(0, os.path.abspath(parent_dir))
@@ -22,7 +23,7 @@ def Main():
 
     # asking the person what they would want to do
     logging.debug(f"Asking the person what they would want to do.")
-    Action = input("What would you like to do? ('CREATE' - Create new recipe, 'DELETE' - delete existing recipes, 'Add Steps' - add steps to existing recipe), 'Delete Steps' delete steps from existing recipe): ")
+    Action = input("What would you like to do? ('CREATE' - Create new recipe, 'DELETE' - delete existing recipes, '(AS) ADDSTEP' - add steps to existing recipe), '(RS) REMOVESTEP' - delete steps from existing recipe): ")
     logging.debug(f"Action selected: {Action}")
 
     if Action == "CREATE" or Action == "C":
@@ -45,6 +46,16 @@ def Main():
         RecipeID = int(input("Enter the ID of the recipe to delete (INT): "))
         logging.debug(f"Recipe ID entered: {RecipeID}")
         DeleteARecipe.DeleteRecipe(RecipeID)
+
+    if Action == "ADDSTEP" or Action == "AS":
+        logging.debug(f"Adding steps to existing recipe.")
+
+        # asking user for the recipe ID to add steps to
+        RecipeID = int(input("Enter the ID of the recipe to add steps to (INT): "))
+        logging.debug(f"Recipe ID entered: {RecipeID}")
+        AddedStepLocation = input("Enter the step number location (or '++' if appending) (INT or STR): ")
+        logging.debug(f"Step location entered: {AddedStepLocation}")
+        AddAStepToRecipe.AddAStep(RecipeID, AddedStepLocation)
 
 
 if __name__ == "__main__":
