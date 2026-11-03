@@ -44,10 +44,10 @@ def AddAStep(RecipeID, StepLocation):
     ExistingSteps.remove("RecipeInfo")
     logging.debug(f"Existing steps found: {ExistingSteps}")
 
+    ExistingSteps = [file.stem for file in Path.cwd().glob("*.json") if file.is_file() and file.stem != "RecipeInfo"]
     ExistingStepsFixed = []
-    for i, step in enumerate(ExistingSteps):
+    for step in ExistingSteps:
         ExistingStepsFixed.append(int(step.split("Step_")[1]))
-        logging.debug(f"Processing step: {step} to {ExistingStepsFixed[i]}")
 
     ExistingSteps = ExistingStepsFixed
     logging.debug(f"Existing steps after processing: {ExistingSteps}")
@@ -66,6 +66,11 @@ def AddAStep(RecipeID, StepLocation):
 
     # adding a step to the middle of the recipe, we need to move all the steps after the location up by 1
     else:
+
+        if max(ExistingSteps) < int(StepLocation):
+            logging.error(f"Step location {StepLocation} is greater than the maximum existing step {max(ExistingSteps)}.")
+            raise ValueError(f"Step location {StepLocation} is greater than the maximum existing step {max(ExistingSteps)}.")
+        
         logging.debug(f"Step location {StepLocation} exists. Shifting steps up by 1.")
 
         for step in sorted(ExistingSteps, reverse=True):
@@ -81,3 +86,7 @@ def AddAStep(RecipeID, StepLocation):
         with open(StepFilePath, 'w') as StepFile:
             json.dump(StepInfo, StepFile, indent=4)
         logging.debug(f"Wrote step info to file: {StepFilePath}")
+
+    logging.info(f"Successfully added step {StepLocation} to recipe {RecipeID}")
+
+    sys.exit(0)

@@ -85,4 +85,4 @@ def CreateRecipe(Name, NSteps):
         logging.debug(f"Wrote step info to file: {StepFilePath}")
 
     logging.info(f"Successfully created recipe '{Name}' with {NSteps} steps with ID: {NewFolderName}")
-    sys.exit(0)  # Exit the program after creating the recipe
+    sys.exit(0)

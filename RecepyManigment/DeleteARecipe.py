@@ -61,4 +61,5 @@ def DeleteRecipe(RecipeID):
         except Exception as e:
             logging.error(f"Failed to rename {old_path.name} to {new_folder_name}: {e}")
 
+    logging.info(f"Successfully renamed subsequent recipe folders after deleting recipe ID: {RecipeID}")
     sys.exit(0)
