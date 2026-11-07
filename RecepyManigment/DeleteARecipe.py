@@ -25,8 +25,9 @@ def DeleteRecipe(RecipeID):
     # entering the recipe folder
     logging.debug(f"Attempting to delete recipe folder with ID: {RecipeID}")
 
-    TargetFolder = Path.cwd() / "Recipes"
-    os.chdir(TargetFolder)
+    current_file_dir = Path(__file__).resolve().parent
+    recipes_folder_path = current_file_dir / ".." / "Recipes"
+    os.chdir(recipes_folder_path)
     logging.debug(f"Changed working directory to: {os.getcwd()}")
 
     # checking if the folder exists
@@ -41,7 +42,7 @@ def DeleteRecipe(RecipeID):
 
     # Get all folders that are digits and greater than RecipeID
     folders_to_rename = []
-    for item in TargetFolder.iterdir():
+    for item in recipes_folder_path.iterdir():
         if item.is_dir() and item.name.isdigit():
             folder_num = int(item.name)
             if folder_num > RecipeID:

@@ -30,8 +30,9 @@ def CreateRecipe(Name, NSteps):
     # entering the recipe folder
     logging.debug(f"Creating a new recipe folder with the name: {Name}")
 
-    TargetFolder = Path.cwd() / "Recipes"
-    os.chdir(TargetFolder)
+    current_file_dir = Path(__file__).resolve().parent
+    recipes_folder_path = current_file_dir / ".." / "Recipes"
+    os.chdir(recipes_folder_path)
     logging.debug(f"Changed working directory to: {os.getcwd()}")
 
     # checking the next folder number

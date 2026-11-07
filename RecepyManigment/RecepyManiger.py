@@ -3,16 +3,14 @@ import logging
 import os
 import sys
 
+parent_dir = os.path.join(os.path.dirname(__file__), '..')
+sys.path.insert(0, os.path.abspath(parent_dir))
+import FilesInitialise
+
 import CreateARecipe
 import DeleteARecipe
 import AddAStepToRecipe
 import DeleteAStepFromRecipe
-# Move up one directory to 'my_project/'
-parent_dir = os.path.join(os.path.dirname(__file__), '..')
-sys.path.insert(0, os.path.abspath(parent_dir))
-
-# file imports
-import FilesInitialise
 
 
 def Main():
@@ -20,6 +18,7 @@ def Main():
 
     # check the files to see if they exist and if not, create them
     logging.debug(f"Checking if the root file exists, if not create it.")
+
     FilesInitialise.CheckIfRootFileExists()
 
     # asking the person what they would want to do

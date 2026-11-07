@@ -29,8 +29,9 @@ def DeleteAStep(RecipeID, StepLocation):
     logging.debug(f"Attempting to delete a step from recipe folder with ID: {RecipeID}")
 
     try:
-        TargetFolder = Path.cwd() / "Recipes" / str(RecipeID)
-        os.chdir(TargetFolder)
+        current_file_dir = Path(__file__).resolve().parent
+        recipes_folder_path = current_file_dir / ".." / "Recipes" / str(RecipeID)
+        os.chdir(recipes_folder_path)
     except FileNotFoundError:
         logging.error(f"Recipe folder not found for ID: {RecipeID}")
         raise
@@ -47,7 +48,7 @@ def DeleteAStep(RecipeID, StepLocation):
     logging.info(f"Successfully deleted step {StepLocation} from recipe {RecipeID}")
 
     # renaming the subsequent step files to fill the gap
-    ExistingSteps = [file.stem for file in Path.cwd().glob("*.json") if file.is_file() and file.stem != "RecipeInfo"]
+    ExistingSteps = [file.stem for file in Path.cwd().glob("*.json") if file.is_file() and file.stem != "RecipeInfo" and file.stem != "Ingredients"]
     ExistingStepsFixed = []
     for step in ExistingSteps:
         ExistingStepsFixed.append(int(step.split("Step_")[1]))
