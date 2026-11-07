@@ -12,9 +12,9 @@ This application functions:
 4) An app (probably cross platform).
 
 ## to launch code
-1) go into the python vert environment (.venv)
-1a) linux and mac: ```source .venv/bin/activate```
-1a) Windows: ```source .\.venv\Scripts\activate.bat```
-2) run the command ```streamlit run Main.py```
+* go into the python vert environment (.venv)
+    * linux and mac: ```source .venv/bin/activate```
+    * Windows: ```source .\.venv\Scripts\activate.bat```
+* run the command ```streamlit run Main.py```
 
 you will know if the code ran by at the current stage, there is a flash of a loading screen, and then just a blank window
