@@ -10,7 +10,7 @@ class Recipes:
         self.name = str(name)
         self.Steps = []
         self.TotalSteps = 0
-        logging.info(f"Created Recipe with ID: {self.recipe_id}, and name {self.name}")
+        logging.debug(f"Created Recipe with ID: {self.recipe_id}, and name {self.name}")
 
     def get_recipe_id(self) -> int:
         return self.recipe_id
@@ -21,7 +21,7 @@ class Recipes:
     def Add_Step(self, StepNumber, StepTitle, StepInstructions, ImagePath, X, Y):
         NewStep = StepsClass.Steps(StepNumber, StepTitle, StepInstructions, ImagePath, X, Y)
         self.Steps.append(NewStep)
-        logging.info(f"New Step Created: {NewStep} now saved in: {self.Steps}")
+        logging.debug(f"New Step Created: {NewStep} now saved in: {self.Steps}")
         self.TotalSteps += 1
 
     def Get_step(self, i):

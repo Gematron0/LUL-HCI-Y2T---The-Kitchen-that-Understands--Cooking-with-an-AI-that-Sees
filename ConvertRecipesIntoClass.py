@@ -28,14 +28,14 @@ def ConvertRecipesIntoClass(AppUi):
 
     RecipeIDs = [int(folder.name) for folder in RecipesDir.iterdir() if folder.is_dir()]
     RecipeIDs.sort()
-    logging.info(f"Found recipe IDs: {RecipeIDs}")
+    logging.debug(f"Found recipe IDs: {RecipeIDs}")
     NumberOfRecipes = len(RecipeIDs)
-    logging.info(f"Total number of recipes: {NumberOfRecipes}")
+    logging.debug(f"Total number of recipes: {NumberOfRecipes}")
 
     # going thru all the recipes
     AllRecipes = []
     for index, RecipeID in enumerate(RecipeIDs):
-        logging.info(f"Checking recipe {RecipeID}")
+        logging.debug(f"Checking recipe {RecipeID}")
 
         CurrentFileDir = Path(__file__).resolve().parent
         RecipesDir = CurrentFileDir / "Recipes" / str(RecipeID)
@@ -51,7 +51,7 @@ def ConvertRecipesIntoClass(AppUi):
         # adding all of the steps
         json_steps = [file.name for file in RecipesDir.rglob("*.json") if file.name not in ["RecipeInfo.json","Ingredients.json"]]
         json_steps.sort()
-        logging.info(f"All steps found: {json_steps}")
+        logging.debug(f"All steps found: {json_steps}")
 
         for i, step in enumerate(json_steps):
             RecipeFilePath = RecipesDir / step
@@ -75,5 +75,6 @@ def ConvertRecipesIntoClass(AppUi):
 
     AppProgressBar.empty()
     ClassConversionUI.empty()
+    logging.info(f"Finished converting recipes")
 
     return AllRecipes
