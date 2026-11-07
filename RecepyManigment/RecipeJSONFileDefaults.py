@@ -13,7 +13,6 @@ def getRecipeInfoDefault(Name):
         "DisplayRecipeInSearch": "False",
         "ImagePath": "",
         "ImageCenter": [0, 0],
-        "Ingredients": [("Ingredient Name", "Amount", "Unit"), ("Ingredient Name", "Amount", "Unit")],
     }
 
 def getStepInfoDefault(StepNumber):
