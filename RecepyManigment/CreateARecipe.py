@@ -66,10 +66,16 @@ def CreateRecipe(Name, NSteps):
     # creating a .json file that containing the recipe name image path and other basic information about the recipe
     RecipeFilePath = Path.cwd() / "RecipeInfo.json"
     logging.debug(f"Creating a new recipe info file at: {RecipeFilePath}")
-
     with open(RecipeFilePath, 'w') as RecipeFile:
         json.dump(RecipeInfo, RecipeFile, indent=4)
     logging.debug(f"Wrote recipe info to file: {RecipeFilePath}")
+
+    # creating ingredient.json
+    IngredientFilePath = Path.cwd() / "Ingredients.json"
+    logging.debug(f"Creating a ingredient info file at: {IngredientFilePath}")
+    with open(IngredientFilePath, 'w') as IngredientFile:
+        json.dump({}, IngredientFile, indent=4)
+    logging.debug(f"Wrote ingredient info to file: {IngredientFilePath}")
 
 
     # creating the step folders and writing the step information to a .json file
