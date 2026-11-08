@@ -1,4 +1,3 @@
-import StepsClass
 import logging
 
 class Recipes:
@@ -19,7 +18,7 @@ class Recipes:
         return self.name
 
     def Add_Step(self, StepNumber, StepTitle, StepInstructions, ImagePath, X, Y):
-        NewStep = StepsClass.Steps(StepNumber, StepTitle, StepInstructions, ImagePath, X, Y)
+        NewStep = Steps(StepNumber, StepTitle, StepInstructions, ImagePath, X, Y)
         self.Steps.append(NewStep)
         logging.debug(f"New Step Created: {NewStep} now saved in: {self.Steps}")
         self.TotalSteps += 1
@@ -29,3 +28,17 @@ class Recipes:
 
     def GetTotalSteps(self) -> int:
         return self.TotalSteps
+
+
+
+class Steps:
+    def __init__(self, StepNumber, StepTitle, StepInstructions, ImagePath, X, Y):
+        self.StepNumber = int(StepNumber)
+        self.StepTitle = str(StepTitle)
+        self.StepInstructions = str(StepInstructions)
+        self.ImagePath = str(ImagePath)
+
+        self.ImageCenter = []
+        self.ImageCenter.append(X)
+        self.ImageCenter.append(Y)
+        logging.debug(f"Created a new Step: {self.StepNumber}, \nWith title: {self.StepTitle} \nAnd instructions: {StepInstructions}")

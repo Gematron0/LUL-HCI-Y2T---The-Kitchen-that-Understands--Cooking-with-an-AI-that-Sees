@@ -5,7 +5,7 @@ from pathlib import Path
 import logging
 import json
 
-import RecipesClass
+import recipesClass
 
 def ConvertRecipesIntoClass(AppUi):
     """
@@ -46,7 +46,7 @@ def ConvertRecipesIntoClass(AppUi):
 
         RecipeName = data.get("RecipeName")
 
-        Recipes = RecipesClass.Recipes(RecipeID, RecipeName)
+        Recipes = recipesClass.Recipes(RecipeID, RecipeName)
 
         # adding all of the steps
         json_steps = [file.name for file in RecipesDir.rglob("*.json") if file.name not in ["RecipeInfo.json","Ingredients.json"]]

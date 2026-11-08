@@ -5,12 +5,12 @@ import sys
 
 parent_dir = os.path.join(os.path.dirname(__file__), '..')
 sys.path.insert(0, os.path.abspath(parent_dir))
-import FilesInitialise
+import filesInitialise
 
-import CreateARecipe
-import DeleteARecipe
-import AddAStepToRecipe
-import DeleteAStepFromRecipe
+import RecepyManigment.createARecipe as createARecipe
+import RecepyManigment.deleteARecipe as deleteARecipe
+import RecepyManigment.addAStepToRecipe as addAStepToRecipe
+import RecepyManigment.deleteAStepFromRecipe as deleteAStepFromRecipe
 
 
 def Main():
@@ -19,7 +19,7 @@ def Main():
     # check the files to see if they exist and if not, create them
     logging.debug(f"Checking if the root file exists, if not create it.")
 
-    FilesInitialise.CheckIfRootFileExists()
+    filesInitialise.CheckIfRootFileExists()
 
     # asking the person what they would want to do
     logging.debug(f"Asking the person what they would want to do.")
@@ -37,7 +37,7 @@ def Main():
         logging.debug(f"Number of steps entered: {NumberOfSteps}")
 
         # creating the recipe
-        CreateARecipe.CreateRecipe(RecipeName, NumberOfSteps)
+        createARecipe.CreateRecipe(RecipeName, NumberOfSteps)
 
     elif Action == "DELETE" or Action == "D":
         logging.debug(f"Deleting existing recipe.")
@@ -45,7 +45,7 @@ def Main():
         # asking user for the recipe ID to delete
         RecipeID = int(input("Enter the ID of the recipe to delete (INT): "))
         logging.debug(f"Recipe ID entered: {RecipeID}")
-        DeleteARecipe.DeleteRecipe(RecipeID)
+        deleteARecipe.DeleteRecipe(RecipeID)
 
     elif Action == "ADDSTEP" or Action == "AS":
         logging.debug(f"Adding steps to existing recipe.")
@@ -55,7 +55,7 @@ def Main():
         logging.debug(f"Recipe ID entered: {RecipeID}")
         AddedStepLocation = input("Enter the step number location (or '++' if appending) (INT or STR): ")
         logging.debug(f"Step location entered: {AddedStepLocation}")
-        AddAStepToRecipe.AddAStep(RecipeID, AddedStepLocation)
+        addAStepToRecipe.AddAStep(RecipeID, AddedStepLocation)
 
     elif Action == "DELETESTEP" or Action == "DS":
         logging.debug(f"Removing steps from existing recipe.")
@@ -65,7 +65,7 @@ def Main():
         logging.debug(f"Recipe ID entered: {RecipeID}")
         RemovedStepLocation = int(input("Enter the step number location to remove (INT): "))
         logging.debug(f"Step location entered: {RemovedStepLocation}")
-        DeleteAStepFromRecipe.DeleteAStep(RecipeID, RemovedStepLocation)
+        deleteAStepFromRecipe.DeleteAStep(RecipeID, RemovedStepLocation)
 
     else:
         logging.error(f"Invalid action selected: {Action}. Expected 'CREATE', 'DELETE', 'ADDSTEP', or 'DELETESTEP'.")

@@ -5,20 +5,20 @@ import time
 import streamlit as st
 
 # file imports
-import FilesInitialise
-import ConvertRecipesIntoClass
+import filesInitialise
+import convertRecipesIntoClass
 
 def main():
     logging.debug(f"Program started! [PID: {os.getpid()}]")
 
     # check the files to see if they exist and if not, create them
-    FilesInitialise.CheckIfRootFileExists()
+    filesInitialise.CheckIfRootFileExists()
 
     # creating the ui
     AppUi = st.container()
 
     # lode up all the recipes so that it can get displayed inside of the streamlit app into a class
-    AllRecipes = ConvertRecipesIntoClass.ConvertRecipesIntoClass(AppUi)
+    AllRecipes = convertRecipesIntoClass.ConvertRecipesIntoClass(AppUi)
 if __name__ == "__main__":
     
     # Configure logging
