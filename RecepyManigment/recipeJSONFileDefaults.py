@@ -10,7 +10,7 @@ def getRecipeInfoDefault(Name):
     """
     return {
         "RecipeName": Name,
-        "DisplayRecipeInSearch": "False",
+        "DisplayRecipeInSearch": false,
         "ImagePath": "",
         "ImageCenter": [0, 0],
     }
