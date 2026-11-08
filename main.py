@@ -18,7 +18,13 @@ def main():
     AppUi = st.container()
 
     # lode up all the recipes so that it can get displayed inside of the streamlit app into a class
-    AllRecipes = convertRecipesIntoClass.ConvertRecipesIntoClass(AppUi)
+    AllRecipes, RecipeKeys = convertRecipesIntoClass.ConvertRecipesIntoClass(AppUi)
+
+    
+    # how to get elements form the class
+    # logging.warning(f"{AllRecipes[RecipeKeys["test3"]].GetTotalSteps()}")
+    # logging.warning(f"{AllRecipes[RecipeKeys["test3"]].Get_step(1).getStepTitle()}")
+
 if __name__ == "__main__":
     
     # Configure logging

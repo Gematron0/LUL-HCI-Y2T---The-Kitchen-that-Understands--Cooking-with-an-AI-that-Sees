@@ -4,6 +4,7 @@ import os
 from pathlib import Path
 import logging
 import json
+import sys
 
 import recipesClass
 
@@ -32,11 +33,19 @@ def ConvertRecipesIntoClass(AppUi):
     NumberOfRecipes = len(RecipeIDs)
     logging.debug(f"Total number of recipes: {NumberOfRecipes}")
 
+    RecipeKeys = {}
+
     # going thru all the recipes
     AllRecipes = []
     for index, RecipeID in enumerate(RecipeIDs):
+
+        # update the apps progress bar
+        percentage = round((index/NumberOfRecipes), 2)
+        AppProgressBar.progress(percentage, text=f"Loading Recipes... ({index}/{NumberOfRecipes})")
+
         logging.debug(f"Checking recipe {RecipeID}")
 
+        # checking the file for the right.json files
         CurrentFileDir = Path(__file__).resolve().parent
         RecipesDir = CurrentFileDir / "Recipes" / str(RecipeID)
         RecipeFilePath = RecipesDir / "RecipeInfo.json"
@@ -45,8 +54,13 @@ def ConvertRecipesIntoClass(AppUi):
             data = json.load(file)
 
         RecipeName = data.get("RecipeName")
+        ImagePath = data.get("ImagePath")
 
-        Recipes = recipesClass.Recipes(RecipeID, RecipeName)
+        if data.get("DisplayRecipeInSearch") == False:
+            logging.info(f"recipe {RecipeName} has been ignored and skipped")
+            continue
+
+        Recipes = recipesClass.Recipes(RecipeID, RecipeName, ImagePath, 0) #<- the number of servings is temp bc currently its not tracked
 
         # adding all of the steps
         json_steps = [file.name for file in RecipesDir.rglob("*.json") if file.name not in ["RecipeInfo.json","Ingredients.json"]]
@@ -68,13 +82,11 @@ def ConvertRecipesIntoClass(AppUi):
 
         # adding it to the total of all recipes
         AllRecipes.append(Recipes)
-
-        # update the apps progress bar
-        percentage = round((index/NumberOfRecipes), 2)
-        AppProgressBar.progress(percentage, text=f"Loading Recipes... ({index}/{NumberOfRecipes})")
+        RecipeKeys[RecipeName] = len(AllRecipes)-1
 
     AppProgressBar.empty()
     ClassConversionUI.empty()
+    logging.debug(f"{RecipeKeys}")
     logging.info(f"Finished converting recipes")
 
-    return AllRecipes
+    return AllRecipes, RecipeKeys
