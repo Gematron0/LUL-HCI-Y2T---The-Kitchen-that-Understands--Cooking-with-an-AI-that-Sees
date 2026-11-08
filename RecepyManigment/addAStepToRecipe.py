@@ -4,7 +4,7 @@ import logging
 import json
 import sys
 
-import RecipeJSONFileDefaults as JSONRecipeDefaults
+import RecepyManigment.recipeJSONFileDefaults as JSONRecipeDefaults
 
 def AddAStep(RecipeID, StepLocation):
     """
