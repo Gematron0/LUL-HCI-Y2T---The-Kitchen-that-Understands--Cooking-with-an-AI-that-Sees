@@ -2,6 +2,18 @@ import logging
 import time
 
 def searchRecipes(SearchQuery, RecipesClass) -> list:
+    """
+    Searches thru a database to get recipes that follow citrin patters
+
+    Parameters:
+    SearchQuery (dict): a dict where
+        key: the type of search (getPossibleSearchTypes())
+        value: an array of all search queuers that should be preformed with that search
+    RecipesClass (list): A OOP list of every recipe stored inside of the DB
+
+    Returns:
+    list: a list of RecipesID (which are inside of the RecipesClass) with the i[0] being the most likely result and i[-1] being the least likely
+    """
     StartTime = time.time()
     logging.info(f"Started Searching, Query: {SearchQuery}")
 
