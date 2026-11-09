@@ -4,13 +4,13 @@ class Recipes:
     """
     A class to represent a recipe with its details.
     """
-    def __init__(self, recipe_id, name, imagePath, NumberOfServings) -> None:
-        self.recipe_id = int(recipe_id)
-        self.name = str(name)
+    def __init__(self, r_id, n, ip, nos) -> None:
+        self.recipe_id = int(r_id)
+        self.name = str(n)
         self.Steps = []
         self.TotalSteps = 0
-        self.ImagePath = imagePath
-        self.NumberOfServings = NumberOfServings
+        self.ImagePath = ip
+        self.NumberOfServings = nos
         self.Ingredients = []
         logging.debug(f"Created Recipe with ID: {self.recipe_id}, and name {self.name}")
 
@@ -37,8 +37,8 @@ class Recipes:
     def getNumberOfServings(self) -> int:
         return self.NumberOfServings
 
-    def Add_Ingredient(self, I, Q, U):
-        NewIngredient = Ingredient(I, Q, U)
+    def Add_Ingredient(self, i, q, u):
+        NewIngredient = Ingredient(i, q, u)
         self.Ingredients.append(NewIngredient)
         return
 
@@ -48,11 +48,11 @@ class Recipes:
 
 
 class Steps:
-    def __init__(self, StepNumber, StepTitle, StepInstructions, ImagePath, X, Y):
-        self.StepNumber = int(StepNumber)
-        self.StepTitle = str(StepTitle)
-        self.StepInstructions = str(StepInstructions)
-        self.ImagePath = str(ImagePath)
+    def __init__(self, sn, st, si, ip, X, Y):
+        self.StepNumber = int(sn)
+        self.StepTitle = str(st)
+        self.StepInstructions = str(si)
+        self.ImagePath = str(ip)
 
         self.ImageCenter = []
         self.ImageCenter.append(X)
@@ -73,10 +73,10 @@ class Steps:
 
 
 class Ingredient():
-    def __init__(self, I, Q, U) -> None:
-        self.Ingredient = str(I)
-        self.Quantity = float(Q)
-        self.Unit = str(U)
+    def __init__(self, i, q, u) -> None:
+        self.Ingredient = str(i)
+        self.Quantity = float(q)
+        self.Unit = str(u)
 
         logging.debug(f"Created a new Ingredient: {self.Ingredient} with {self.Quantity} {self.Unit}")
 
