@@ -1,9 +1,9 @@
 import logging
+import time
 
 def searchRecipes(SearchQuery, RecipesClass, RecipeKeys) -> list:
-
-    print(SearchQuery)
-
+    StartTime = time.time()
+    logging.debug("Started Searching")
     # validating that the input is right types
     if not isinstance(SearchQuery, dict):
         logging.error(f"SearchQuery must be a dict; got: {type(SearchQuery)}")
@@ -23,14 +23,29 @@ def searchRecipes(SearchQuery, RecipesClass, RecipeKeys) -> list:
 
     # 2
     # grab the list now for what search types exists and sends it to be searched, give ing a set of recipes names
+    result = []
     for searchType in SearchTypes:
         for searchQuery in SearchQuery[searchType]:
-            text = _searchRecepy(RecipesClass, searchType, searchQuery)
-            print(text)
+            result.append(_searchRecepy(RecipesClass, searchType, searchQuery))
+            logging.debug(f"Results: {result}")
 
+    # 3
+    # getting a set of all recipe id's
 
+    Result = set()
+    for x in result:
+        if len(x) == 0:
+            logging.debug(f"Contained nothing, next set")
+            continue
 
-    return []
+        Result = x.union(Result)
+        logging.debug(f"All valid recipe IDs {Result}, Last union: {x}")
+
+    Result = sorted(list(Result))
+    logging.debug(f"Search Result: {Result}")
+    logging.debug(f"time taken: {time.time()-StartTime}")
+    return Result
+
 
 def _searchRecepy(RecipesClass, searchType, searchQuery) -> set:
 
@@ -38,26 +53,56 @@ def _searchRecepy(RecipesClass, searchType, searchQuery) -> set:
 
     match searchType:
         case "Text":
-            return(_TextSearchType(RecipesClass, searchQuery))
+            return _TextSearchType(RecipesClass, searchQuery)
 
         case "Ingredient":
-            return set()
+            return _IngredientSearchType(RecipesClass, searchQuery)
 
         case "Equipment":
             return set()
             
         case "Allergen":
             return set()
-            
+
+def _IngredientSearchType(RecipesClass, searchQuery) -> set:
+    ValidSearchedRecipes = set()
+
+    for Recipe in RecipesClass:
+        Ingredients = Recipe.Get_Ingredients()
+        logging.debug(f"on: {Recipe.get_name()}")
+
+        # checking if the recipe has any ingredient
+        if len(Ingredients) == 0:
+            logging.debug(f"{Recipe.get_name()} dose not have any ingredient, skipped")
+            continue
+
+
+        for IngredientObj in Ingredients:
+            Ingredient = IngredientObj.getIngredient()
+            logging.debug(f"Scanning if ingredient: {Ingredient.lower()} is to {searchQuery.lower()}")
+            if Ingredient.lower() == searchQuery.lower():
+                logging.debug(f"Found match: {Ingredient}")
+                ValidSearchedRecipes.add(Recipe.get_recipe_id())
+                break
+            else:
+                logging.debug(f"Not true")
+
+    return ValidSearchedRecipes
+
 
 def _TextSearchType(RecipesClass, searchQuery) -> set:
     ValidSearchedRecipes = set()
 
-    for recipe in RecipesClass:
-        recipeName = recipe.get_name()
+    for Recipe in RecipesClass:
+        RecipeName = Recipe.get_name()
+        logging.debug(f"Scanning if recipe: {RecipeName.lower()} is to {searchQuery.lower()}")
 
-        if searchQuery.lower() in recipeName.lower():
-            ValidSearchedRecipes.add(recipeName)
+        if searchQuery.lower() in RecipeName.lower():
+            logging.debug(f"Found {RecipeName.lower()}")
+            ValidSearchedRecipes.add(Recipe.get_recipe_id())
+
+        else:
+            logging.debug(f"Not true")
 
     return ValidSearchedRecipes
 

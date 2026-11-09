@@ -25,8 +25,11 @@ def main():
     # how to get elements form the class
     # logging.warning(f"{AllRecipes[RecipeKeys["test3"]].GetTotalSteps()}")
     # logging.warning(f"{AllRecipes[RecipeKeys["test3"]].Get_step(1).getStepTitle()}")
+    AllRecipes[0].Add_Ingredient("Banana", 20, "g")
+    AllRecipes[0].Add_Ingredient("Cherry", 50, "kg")
+    AllRecipes[1].Add_Ingredient("crassysdad", 50, "kg")
 
-    searchQuery = {"Text": ["TeSt1", "3"], "Equipment": ["another test", "hello there"]}
+    searchQuery = {"Text": ["TeSt1", ""], "Equipment": ["another test", "hello there"], "Ingredient": ["Banana", "Cherry"]}
     print(searchQuery)
     searchRecipes.searchRecipes(searchQuery, AllRecipes, RecipeKeys)
 

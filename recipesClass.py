@@ -11,7 +11,7 @@ class Recipes:
         self.TotalSteps = 0
         self.ImagePath = imagePath
         self.NumberOfServings = NumberOfServings
-        self.Ingredient = []
+        self.Ingredients = []
         logging.debug(f"Created Recipe with ID: {self.recipe_id}, and name {self.name}")
 
     def get_recipe_id(self) -> int:
@@ -37,13 +37,13 @@ class Recipes:
     def getNumberOfServings(self) -> int:
         return self.NumberOfServings
 
-    def Add_Ingredient(self, Ingredient, Quantity, Unit):
-        NewIngredient = Ingredient(Ingredient, Quantity, Unit)
-        self.Ingredient.append(NewIngredient)
+    def Add_Ingredient(self, I, Q, U):
+        NewIngredient = Ingredient(I, Q, U)
+        self.Ingredients.append(NewIngredient)
         return
 
-    def Get_Ingredients(self):
-        return self.Ingredient
+    def Get_Ingredients(self) -> list:
+        return self.Ingredients
 
 
 
@@ -58,7 +58,7 @@ class Steps:
         self.ImageCenter.append(X)
         self.ImageCenter.append(Y)
         logging.debug(f"Created a new Step: {self.StepNumber}, \nWith title: {self.StepTitle} \nAnd instructions: {StepInstructions}")
-
+    
     def getStepTitle(self) -> str:
         return self.StepTitle 
 
@@ -73,18 +73,18 @@ class Steps:
 
 
 class Ingredient():
-    def __init__(self, Ingredient, Quantity, Unit) -> None:
-        self.Ingredient = Ingredient
-        self.Quantity = Quantity
-        self.Unit = Unit
+    def __init__(self, I, Q, U) -> None:
+        self.Ingredient = str(I)
+        self.Quantity = float(Q)
+        self.Unit = str(U)
 
-        logging.debug(f"Created a new Ingredient: {Ingredient} with {Quantity} {Unit}")
+        logging.debug(f"Created a new Ingredient: {self.Ingredient} with {self.Quantity} {self.Unit}")
 
     def getIngredient(self) -> str:
         return self.Ingredient
 
-    def getQuantity(self) -> str:
+    def getQuantity(self) -> float:
         return self.Quantity
 
-    def getUnit(self) -> float:
+    def getUnit(self) -> str:
         return self.Unit
