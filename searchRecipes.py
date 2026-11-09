@@ -3,7 +3,7 @@ import time
 
 def searchRecipes(SearchQuery, RecipesClass, RecipeKeys) -> list:
     StartTime = time.time()
-    logging.debug("Started Searching")
+    logging.info(f"Started Searching, Query: {SearchQuery}")
     # validating that the input is right types
     if not isinstance(SearchQuery, dict):
         logging.error(f"SearchQuery must be a dict; got: {type(SearchQuery)}")
@@ -23,40 +23,57 @@ def searchRecipes(SearchQuery, RecipesClass, RecipeKeys) -> list:
 
     # 2
     # grab the list now for what search types exists and sends it to be searched, give ing a set of recipes names
-    result = []
+    Results = []
     for searchType in SearchTypes:
         for searchQuery in SearchQuery[searchType]:
-            result.append(_searchRecepy(RecipesClass, searchType, searchQuery))
-            logging.debug(f"Results: {result}")
+            Results.append(_searchIndividualQuery(RecipesClass, searchType, searchQuery))
+            logging.debug(f"Results: {Results}")
 
     # 3
-    # getting a set of all recipe id's
+    # sorting the aIS's by most possible recipe (e.g, the more requirements it satisfies the high on the list it is)
 
-    Result = set()
-    for x in result:
-        if len(x) == 0:
+    WeightedResults = dict()
+    for Values in Results:
+        if len(Values) == 0:
             logging.debug(f"Contained nothing, next set")
             continue
 
-        Result = x.union(Result)
-        logging.debug(f"All valid recipe IDs {Result}, Last union: {x}")
+        for PossibleResult in Values:
+            # if the result was not yet inside of a dict
+            if PossibleResult not in WeightedResults:
+                WeightedResults[PossibleResult] = 1
+                logging.debug(f"First element for recipe ID: {PossibleResult}: #{WeightedResults[PossibleResult]}")
+            else:
+                WeightedResults[PossibleResult] += 1
+                logging.debug(f"Added element for recipe ID: {PossibleResult}: #{WeightedResults[PossibleResult]}")
 
-    Result = sorted(list(Result))
-    logging.debug(f"Search Result: {Result}")
-    logging.debug(f"time taken: {time.time()-StartTime}")
-    return Result
+    logging.debug(f"Weighted results are: {WeightedResults}")
+
+    # 4
+    # convert the list of elements into a flat array
+    SearchResults = []
+    while WeightedResults:
+        HighestKey = max(WeightedResults, key=lambda key: WeightedResults[key])
+        WeightedResults.pop(HighestKey)
+        SearchResults.append(HighestKey)
+
+    logging.info(f"Search ended")
+    logging.info(f"Time: {time.time()-StartTime}")
+    logging.info(f"Search Results: {SearchResults}")
+    return SearchResults
+            
 
 
-def _searchRecepy(RecipesClass, searchType, searchQuery) -> set:
+def _searchIndividualQuery(RecipesClass, searchType, searchQuery) -> set:
 
     logging.debug(f"searching for type: {searchType}, query: {searchQuery}")
 
     match searchType:
         case "Text":
-            return _TextSearchType(RecipesClass, searchQuery)
+            return _textSearchType(RecipesClass, searchQuery)
 
         case "Ingredient":
-            return _IngredientSearchType(RecipesClass, searchQuery)
+            return _ingredientSearchType(RecipesClass, searchQuery)
 
         case "Equipment":
             return set()
@@ -64,7 +81,10 @@ def _searchRecepy(RecipesClass, searchType, searchQuery) -> set:
         case "Allergen":
             return set()
 
-def _IngredientSearchType(RecipesClass, searchQuery) -> set:
+    logging.error(f"Search Type: {searchType} dose not exists, returned an empty result to just continue the code, but search result will not be as accurate as expected")
+    return set()
+
+def _ingredientSearchType(RecipesClass, searchQuery) -> set:
     ValidSearchedRecipes = set()
 
     for Recipe in RecipesClass:
@@ -90,7 +110,7 @@ def _IngredientSearchType(RecipesClass, searchQuery) -> set:
     return ValidSearchedRecipes
 
 
-def _TextSearchType(RecipesClass, searchQuery) -> set:
+def _textSearchType(RecipesClass, searchQuery) -> set:
     ValidSearchedRecipes = set()
 
     for Recipe in RecipesClass:
@@ -111,7 +131,6 @@ def _findPossibleSearch(SearchQuery, PossibleSearchTypes) -> list:
 
     # go thr the SearchQuery keys, match it with the SearchTypesCalls keys and if true increment the SearchTypesCalls value
     for key in SearchQuery:
-
         if key not in PossibleSearchTypes:
             logging.error(f"Search query contains a key that was not expected; got: {key}, needed to be {PossibleSearchTypes}")
             raise ValueError
@@ -119,7 +138,6 @@ def _findPossibleSearch(SearchQuery, PossibleSearchTypes) -> list:
         SearchTypes.add(key)
 
     logging.debug(f"All possible calls and reductions: {SearchTypes}")
-
     return list(SearchTypes)
 
 
