@@ -9,7 +9,7 @@ This application functions:
 1) Take a photo of the ingredient the user has and propose some dish recipes based on the ingredient the user has.
 2) Open the recipe and display a simple recipe step by step guide.
 3) Finger out when the cooking companion should say something that will help or hinder you while cooking.
-4) An app (probably cross platform).
+4) An app (probably cross platform) or webpage.
 
 ## to launch code
 * go into the python vert environment (.venv)
