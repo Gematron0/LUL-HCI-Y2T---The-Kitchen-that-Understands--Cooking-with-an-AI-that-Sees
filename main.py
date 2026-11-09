@@ -32,8 +32,7 @@ def main():
     AllRecipes[2].Add_Ingredient("Cherry", 50, "kg")
 
     searchQuery = {"Text": ["TeSt2", "TeSt2", "TeSt2", "TeSt2", "TeSt2"], "Equipment": ["another test", "hello there"], "Ingredient": ["Banana", "Cherry"]}
-    print(searchQuery)
-    searchRecipes.searchRecipes(searchQuery, AllRecipes, RecipeKeys)
+    searchRecipes.searchRecipes(searchQuery, AllRecipes)
 
 if __name__ == "__main__":
     
