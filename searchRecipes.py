@@ -1,5 +1,7 @@
 import logging
 import time
+from concurrent.futures import ThreadPoolExecutor
+import time
 
 def searchRecipes(SearchQuery, RecipesClass) -> list:
     """
@@ -33,11 +35,24 @@ def searchRecipes(SearchQuery, RecipesClass) -> list:
 
     # 2
     # grab the list now for what search types exists and sends it to be searched, give ing a set of recipes names
+
     Results = []
     for searchType in SearchTypes:
         for searchQuery in SearchQuery[searchType]:
             Results.append(_searchIndividualQuery(RecipesClass, searchType, searchQuery))
             logging.debug(f"Results: {Results}")
+
+    
+    # multiline test, this code works, I dont know if its faster since the DB is to small, this is for the future, but currently its slower
+    """
+    Results = []
+    with ThreadPoolExecutor() as executor:
+        for searchType in SearchTypes:
+            for searchQuery in SearchQuery[searchType]:
+                Results.append(executor.submit(_searchIndividualQuery, RecipesClass, searchType, searchQuery))
+
+    Results = [future.result() for future in Results]
+    """
 
     # 3
     # sorting the ID's by most possible recipe (e.g, the more requirements it satisfies the high on the list it is)
