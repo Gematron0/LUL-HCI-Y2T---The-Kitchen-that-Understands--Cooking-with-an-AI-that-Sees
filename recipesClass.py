@@ -57,7 +57,7 @@ class Steps:
         self.ImageCenter = []
         self.ImageCenter.append(X)
         self.ImageCenter.append(Y)
-        logging.debug(f"Created a new Step: {self.StepNumber}, \nWith title: {self.StepTitle} \nAnd instructions: {StepInstructions}")
+        logging.debug(f"Created a new Step: {self.StepNumber}, \nWith title: {self.StepTitle} \nAnd instructions: {self.StepInstructions}")
     
     def getStepTitle(self) -> str:
         return self.StepTitle 

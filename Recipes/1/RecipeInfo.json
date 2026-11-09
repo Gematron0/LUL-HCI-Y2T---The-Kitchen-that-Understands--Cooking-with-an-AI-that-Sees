@@ -1,6 +1,6 @@
 {
     "RecipeName": "test2",
-    "DisplayRecipeInSearch": false,
+    "DisplayRecipeInSearch": true,
     "ImagePath": "",
     "ImageCenter": [
         0,
