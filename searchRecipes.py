@@ -1,7 +1,7 @@
 import logging
 import time
 
-def searchRecipes(SearchQuery, RecipesClass, RecipeKeys) -> list:
+def searchRecipes(SearchQuery, RecipesClass) -> list:
     StartTime = time.time()
     logging.info(f"Started Searching, Query: {SearchQuery}")
     # validating that the input is right types
@@ -12,10 +12,6 @@ def searchRecipes(SearchQuery, RecipesClass, RecipeKeys) -> list:
     if not isinstance(RecipesClass, list):
         logging.error(f"RecipesClass must be a list; got: {type(RecipesClass)}")
         raise ValueError("RecipeID must be an list.")
-
-    if not isinstance(RecipeKeys, dict):
-        logging.error(f"RecipeKeys must be a dict; got: {type(RecipeKeys)}")
-        raise ValueError("RecipeID must be an dict.")
 
     # 1
     # validating that all the input of the SearchQuery to check if they all contain the right info and if we can skip searches
