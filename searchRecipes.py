@@ -4,6 +4,8 @@ import time
 def searchRecipes(SearchQuery, RecipesClass) -> list:
     StartTime = time.time()
     logging.info(f"Started Searching, Query: {SearchQuery}")
+
+    # 0
     # validating that the input is right types
     if not isinstance(SearchQuery, dict):
         logging.error(f"SearchQuery must be a dict; got: {type(SearchQuery)}")
@@ -26,7 +28,7 @@ def searchRecipes(SearchQuery, RecipesClass) -> list:
             logging.debug(f"Results: {Results}")
 
     # 3
-    # sorting the aIS's by most possible recipe (e.g, the more requirements it satisfies the high on the list it is)
+    # sorting the ID's by most possible recipe (e.g, the more requirements it satisfies the high on the list it is)
 
     WeightedResults = dict()
     for Values in Results:
