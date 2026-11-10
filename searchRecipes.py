@@ -19,7 +19,7 @@ def searchRecipes(SearchQuery, RecipesClass) -> list:
     StartTime = time.time()
     logging.info(f"Started Searching, Query: {SearchQuery}")
 
-    # 0
+    # 1
     # validating that the input is right types
     if not isinstance(SearchQuery, dict):
         logging.error(f"SearchQuery must be a dict; got: {type(SearchQuery)}")
@@ -29,11 +29,11 @@ def searchRecipes(SearchQuery, RecipesClass) -> list:
         logging.error(f"RecipesClass must be a list; got: {type(RecipesClass)}")
         raise ValueError("RecipeID must be an list.")
 
-    # 1
+    # 2
     # validating that all the input of the SearchQuery to check if they all contain the right info and if we can skip searches
     SearchTypes = _findPossibleSearch(SearchQuery, getPossibleSearchTypes())
 
-    # 2
+    # 3
     # grab the list now for what search types exists and sends it to be searched, give ing a set of recipes names
 
     Results = []
@@ -54,7 +54,7 @@ def searchRecipes(SearchQuery, RecipesClass) -> list:
     Results = [future.result() for future in Results]
     """
 
-    # 3
+    # 4
     # sorting the ID's by most possible recipe (e.g, the more requirements it satisfies the high on the list it is)
 
     WeightedResults = dict()
@@ -72,7 +72,7 @@ def searchRecipes(SearchQuery, RecipesClass) -> list:
 
     logging.debug(f"Weighted results are: {WeightedResults}")
 
-    # 4
+    # 5
     # convert the list of elements into a flat array
     SearchResults = []
     while WeightedResults:
