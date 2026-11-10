@@ -7,11 +7,16 @@ class Recipes:
     def __init__(self, r_id, n, ip, nos) -> None:
         self.recipe_id = int(r_id)
         self.name = str(n)
+        self.NumberOfServings = nos
+
         self.Steps = []
         self.TotalSteps = 0
+
         self.ImagePath = ip
-        self.NumberOfServings = nos
+
         self.Ingredients = []
+        self.Equipment = []
+        self.Allergies = []
         logging.debug(f"Created Recipe with ID: {self.recipe_id}, and name {self.name}")
 
     def get_recipe_id(self) -> int:
@@ -45,35 +50,6 @@ class Recipes:
     def Get_Ingredients(self) -> list:
         return self.Ingredients
 
-
-
-class Steps:
-    def __init__(self, sn, st, si, ip, X, Y):
-        self.StepNumber = int(sn)
-        self.StepTitle = str(st)
-        self.StepInstructions = str(si)
-        self.ImagePath = str(ip)
-
-        self.ImageCenter = []
-        self.ImageCenter.append(X)
-        self.ImageCenter.append(Y)
-
-        self.Equipment = []
-        self.Allergies = []
-        logging.debug(f"Created a new Step: {self.StepNumber}, \nWith title: {self.StepTitle} \nAnd instructions: {self.StepInstructions}")
-    
-    def getStepTitle(self) -> str:
-        return self.StepTitle 
-
-    def getStepInstructions(self) -> str:
-        return self.StepInstructions 
-
-    def getImagePath(self) -> str:
-        return self.ImagePath 
-
-    def getImageCenter(self) -> list:
-        return self.ImageCenter
-
     def addEquipment(self, E) -> None:
         self.Equipment.append(E)
         return
@@ -87,6 +63,32 @@ class Steps:
 
     def getAllergies(self) -> list:
         return self.Allergies
+
+
+class Steps:
+    def __init__(self, sn, st, si, ip, X, Y):
+        self.StepNumber = int(sn)
+        self.StepTitle = str(st)
+        self.StepInstructions = str(si)
+        self.ImagePath = str(ip)
+
+        self.ImageCenter = []
+        self.ImageCenter.append(X)
+        self.ImageCenter.append(Y)
+
+        logging.debug(f"Created a new Step: {self.StepNumber}, \nWith title: {self.StepTitle} \nAnd instructions: {self.StepInstructions}")
+    
+    def getStepTitle(self) -> str:
+        return self.StepTitle 
+
+    def getStepInstructions(self) -> str:
+        return self.StepInstructions 
+
+    def getImagePath(self) -> str:
+        return self.ImagePath 
+
+    def getImageCenter(self) -> list:
+        return self.ImageCenter
 
 
 class Ingredient():
