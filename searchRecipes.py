@@ -89,19 +89,19 @@ def searchRecipes(SearchQuery, RecipesClass) -> list:
             
 
 
-def _searchIndividualQuery(RecipesClass, searchType, searchQuery) -> set:
+def _searchIndividualQuery(RecipesClass, searchType, SearchQuery) -> set:
 
-    logging.debug(f"searching for type: {searchType}, query: {searchQuery}")
+    logging.debug(f"searching for type: {searchType}, query: {SearchQuery}")
 
     match searchType:
         case "Text":
-            return _textSearchType(RecipesClass, searchQuery)
+            return _textSearchType(RecipesClass, SearchQuery)
 
         case "Ingredient":
-            return _ingredientSearchType(RecipesClass, searchQuery)
+            return _ingredientSearchType(RecipesClass, SearchQuery)
 
         case "Equipment":
-            return set()
+            return _equipmentSearchType(RecipesClass, SearchQuery)
             
         case "Allergen":
             return set()
@@ -109,7 +109,27 @@ def _searchIndividualQuery(RecipesClass, searchType, searchQuery) -> set:
     logging.error(f"Search Type: {searchType} dose not exists, returned an empty result to just continue the code, but search result will not be as accurate as expected")
     return set()
 
-def _ingredientSearchType(RecipesClass, searchQuery) -> set:
+def _equipmentSearchType(RecipesClass, SearchQuery) -> set:
+    ValidSearchedRecipes = set()
+
+    for Recipe in RecipesClass:
+        Equipments = Recipe.get_Equipment()
+        logging.debug(f"on: {Recipe.get_name()}")
+
+        if len(Equipments) == 0:
+            logging.debug(f"{Recipe.get_name()} dose not have any equipment")
+
+        for Equipment in Equipments:
+            logging.debug(f"Scanning if {Equipment} = {SearchQuery}")
+            if Equipment.lower() == SearchQuery.lower():
+                logging.debug(f"Found a match")
+                ValidSearchedRecipes.add(Recipe.get_recipe_id())
+                break
+
+    return ValidSearchedRecipes
+
+
+def _ingredientSearchType(RecipesClass, SearchQuery) -> set:
     ValidSearchedRecipes = set()
 
     for Recipe in RecipesClass:
@@ -124,25 +144,23 @@ def _ingredientSearchType(RecipesClass, searchQuery) -> set:
 
         for IngredientObj in Ingredients:
             Ingredient = IngredientObj.getIngredient()
-            logging.debug(f"Scanning if ingredient: {Ingredient.lower()} is to {searchQuery.lower()}")
-            if Ingredient.lower() == searchQuery.lower():
+            logging.debug(f"Scanning if ingredient: {Ingredient.lower()} is to {SearchQuery.lower()}")
+            if Ingredient.lower() == SearchQuery.lower():
                 logging.debug(f"Found match: {Ingredient}")
                 ValidSearchedRecipes.add(Recipe.get_recipe_id())
                 break
-            else:
-                logging.debug(f"Not true")
 
     return ValidSearchedRecipes
 
 
-def _textSearchType(RecipesClass, searchQuery) -> set:
+def _textSearchType(RecipesClass, SearchQuery) -> set:
     ValidSearchedRecipes = set()
 
     for Recipe in RecipesClass:
         RecipeName = Recipe.get_name()
-        logging.debug(f"Scanning if recipe: {RecipeName.lower()} is to {searchQuery.lower()}")
+        logging.debug(f"Scanning if recipe: {RecipeName.lower()} is to {SearchQuery.lower()}")
 
-        if searchQuery.lower() in RecipeName.lower():
+        if SearchQuery.lower() in RecipeName.lower():
             logging.debug(f"Found {RecipeName.lower()}")
             ValidSearchedRecipes.add(Recipe.get_recipe_id())
 

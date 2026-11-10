@@ -50,18 +50,18 @@ class Recipes:
     def Get_Ingredients(self) -> list:
         return self.Ingredients
 
-    def addEquipment(self, E) -> None:
+    def add_Equipment(self, E) -> None:
         self.Equipment.append(E)
         return
 
-    def getEquipment(self) -> list:
+    def get_Equipment(self) -> list:
         return self.Equipment
 
-    def addAllergies(self, A) -> None:
+    def add_Allergies(self, A) -> None:
         self.Allergies.append(A)
         return
 
-    def getAllergies(self) -> list:
+    def get_Allergies(self) -> list:
         return self.Allergies
 
 
