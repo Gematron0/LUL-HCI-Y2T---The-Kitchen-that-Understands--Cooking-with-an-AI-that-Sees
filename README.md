@@ -12,9 +12,10 @@ This application functions:
 4) An app (probably cross platform) or webpage.
 
 ## to launch code
-* go into the python vert environment (.venv)
+* go create a vert environment (.venv) and activate it
     * linux and mac: ```source .venv/bin/activate```
     * Windows: ```source .\.venv\Scripts\activate.bat```
-* run the command ```streamlit run Main.py```
+* install the packages needed to run the program```pip install -r requirements.txt```
+* run the command ```streamlit run main.py```
 
 you will know if the code ran by at the current stage, there is a flash of a loading screen, and then just a blank window
