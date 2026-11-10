@@ -104,10 +104,29 @@ def _searchIndividualQuery(RecipesClass, searchType, SearchQuery) -> set:
             return _equipmentSearchType(RecipesClass, SearchQuery)
             
         case "Allergen":
-            return set()
+            return _allergenSearchType(RecipesClass, SearchQuery)
 
     logging.error(f"Search Type: {searchType} dose not exists, returned an empty result to just continue the code, but search result will not be as accurate as expected")
     return set()
+
+def _allergenSearchType(RecipesClass, SearchQuery) -> set:
+    ValidSearchedRecipes = set()
+
+    for Recipes in RecipesClass:
+        Allergens = Recipes.get_Allergies()
+        logging.debug(f"on {Recipes.get_name()}")
+
+        if len(Allergens) == 0:
+            logging.debug(f"on {Recipes.get_name()} dose not have any allergens")
+
+        logging.debug(f"Checking if {SearchQuery} dose not contain {Allergens}")
+        if SearchQuery.lower() not in [Item.lower() for Item in Allergens]:
+            logging.debug(f"No match found")
+            ValidSearchedRecipes.add(Recipes.get_recipe_id())
+
+
+
+    return ValidSearchedRecipes
 
 def _equipmentSearchType(RecipesClass, SearchQuery) -> set:
     ValidSearchedRecipes = set()
@@ -119,12 +138,11 @@ def _equipmentSearchType(RecipesClass, SearchQuery) -> set:
         if len(Equipments) == 0:
             logging.debug(f"{Recipe.get_name()} dose not have any equipment")
 
-        for Equipment in Equipments:
-            logging.debug(f"Scanning if {Equipment} = {SearchQuery}")
-            if Equipment.lower() == SearchQuery.lower():
-                logging.debug(f"Found a match")
-                ValidSearchedRecipes.add(Recipe.get_recipe_id())
-                break
+        logging.debug(f"scanning if {Equipments} is equal to {SearchQuery}")
+
+        if SearchQuery.lower() in [Item.lower() for Item in Equipments]:
+            logging.debug(f"match found")
+            ValidSearchedRecipes.add(Recipe.get_recipe_id())
 
     return ValidSearchedRecipes
 
