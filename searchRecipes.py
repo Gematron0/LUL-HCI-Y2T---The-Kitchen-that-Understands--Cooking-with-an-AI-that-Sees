@@ -58,19 +58,17 @@ def searchRecipes(SearchQuery, RecipesClass) -> list:
     # sorting the ID's by most possible recipe (e.g, the more requirements it satisfies the high on the list it is)
 
     WeightedResults = dict()
+    for Recipes in RecipesClass:
+        WeightedResults[Recipes.get_recipe_id()] = 0
+
     for Values in Results:
         if len(Values) == 0:
             logging.debug(f"Contained nothing, next set")
             continue
 
         for PossibleResult in Values:
-            # if the result was not yet inside of a dict
-            if PossibleResult not in WeightedResults:
-                WeightedResults[PossibleResult] = 1
-                logging.debug(f"First element for recipe ID: {PossibleResult}: #{WeightedResults[PossibleResult]}")
-            else:
-                WeightedResults[PossibleResult] += 1
-                logging.debug(f"Added element for recipe ID: {PossibleResult}: #{WeightedResults[PossibleResult]}")
+            WeightedResults[PossibleResult] += 1
+            logging.debug(f"Added element for recipe ID: {PossibleResult}: #{WeightedResults[PossibleResult]}")
 
     logging.debug(f"Weighted results are: {WeightedResults}")
 
