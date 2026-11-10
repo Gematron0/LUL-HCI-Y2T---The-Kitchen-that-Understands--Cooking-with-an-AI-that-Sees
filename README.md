@@ -12,7 +12,13 @@ This application functions:
 4) An app (probably cross platform) or webpage.
 
 ## to launch code
+there are 2 diffrent ways
 
+1) automatic way
+* open the terminal in where the Makefile is at (where also main.py is at) and run ```make setup```
+* then run either ```streamlit run main.py``` or ```make run```, dose not matter, they both do the same thing
+
+2) manual way
 * go create a vert environment ```python3 -m venv venv``` and activate it
     * linux and mac: ```source .venv/bin/activate```
     * Windows: ```source .\.venv\Scripts\activate.bat```
