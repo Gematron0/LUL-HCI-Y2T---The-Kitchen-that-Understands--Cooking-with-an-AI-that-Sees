@@ -19,4 +19,6 @@ This application functions:
 * install the packages needed to run the program```pip install -r requirements.txt```
 * run the command ```streamlit run main.py```
 
+* if you have new packages you added, run this command ```pip freeze > requirements.txt```
+
 you will know if the code ran by at the current stage, there is a flash of a loading screen, and then just a blank window
