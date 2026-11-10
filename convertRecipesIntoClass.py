@@ -60,7 +60,7 @@ def ConvertRecipesIntoClass(AppUi):
             logging.info(f"recipe {RecipeName} has been ignored and skipped")
             continue
 
-        Recipes = recipesClass.Recipes(RecipeID, RecipeName, ImagePath, 0) #<- the number of servings is temp bc currently its not tracked
+        Recipes = recipesClass.Recipes(RecipeID, RecipeName, ImagePath, 0, 0, 0) #<- the number of servings is temp bc currently its not tracked also image center
 
         # adding all of the steps
         json_steps = [file.name for file in RecipesDir.rglob("*.json") if file.name not in ["RecipeInfo.json","Ingredients.json"]]
