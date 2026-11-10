@@ -4,7 +4,7 @@ class Recipes:
     """
     A class to represent a recipe with its details.
     """
-    def __init__(self, r_id, n, ip, nos) -> None:
+    def __init__(self, r_id, n, ip, x, y, nos) -> None:
         self.recipe_id = int(r_id)
         self.name = str(n)
         self.NumberOfServings = nos
@@ -13,6 +13,9 @@ class Recipes:
         self.TotalSteps = 0
 
         self.ImagePath = ip
+        self.ImageCoronets = []
+        self.ImageCoronets.append(x)
+        self.ImageCoronets.append(y)
 
         self.Ingredients = []
         self.Equipment = []
