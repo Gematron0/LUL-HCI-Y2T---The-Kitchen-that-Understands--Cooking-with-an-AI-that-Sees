@@ -12,7 +12,8 @@ This application functions:
 4) An app (probably cross platform) or webpage.
 
 ## to launch code
-* go create a vert environment (.venv) and activate it
+
+* go create a vert environment ```python3 -m venv venv``` and activate it
     * linux and mac: ```source .venv/bin/activate```
     * Windows: ```source .\.venv\Scripts\activate.bat```
 * install the packages needed to run the program```pip install -r requirements.txt```
