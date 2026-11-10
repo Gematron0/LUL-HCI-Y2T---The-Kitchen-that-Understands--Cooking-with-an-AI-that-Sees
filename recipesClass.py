@@ -57,6 +57,9 @@ class Steps:
         self.ImageCenter = []
         self.ImageCenter.append(X)
         self.ImageCenter.append(Y)
+
+        self.Equipment = []
+        self.Allergies = []
         logging.debug(f"Created a new Step: {self.StepNumber}, \nWith title: {self.StepTitle} \nAnd instructions: {self.StepInstructions}")
     
     def getStepTitle(self) -> str:
@@ -70,6 +73,20 @@ class Steps:
 
     def getImageCenter(self) -> list:
         return self.ImageCenter
+
+    def addEquipment(self, E) -> None:
+        self.Equipment.append(E)
+        return
+
+    def getEquipment(self) -> list:
+        return self.Equipment
+
+    def addAllergies(self, A) -> None:
+        self.Allergies.append(A)
+        return
+
+    def getAllergies(self) -> list:
+        return self.Allergies
 
 
 class Ingredient():
