@@ -10,7 +10,7 @@ def searchRecipes(SearchQuery, RecipesClass) -> list:
     Parameters:
     SearchQuery (dict): a dict where
         key: the type of search (getPossibleSearchTypes())
-        value: an array of all search queuers that should be preformed with that search
+        value: an set of all search queuers that should be preformed with that search
     RecipesClass (list): A OOP list of every recipe stored inside of the DB
 
     Returns:
