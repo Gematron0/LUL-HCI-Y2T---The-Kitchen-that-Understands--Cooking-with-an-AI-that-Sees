@@ -8,6 +8,7 @@ import streamlit as st
 import filesInitialise
 import convertRecipesIntoClass
 import searchRecipes
+import ImageToIngredientScanner
 
 def main():
     logging.debug(f"Program started! [PID: {os.getpid()}]")
@@ -30,6 +31,8 @@ def main():
     AllRecipes[2].Add_Ingredient("Cherry", 50, "kg")
     AllRecipes[2].Add_Ingredient("Cherry", 50, "kg")
     AllRecipes[2].Add_Ingredient("Cherry", 50, "kg")
+
+    output = ImageToIngredientScanner.ImageToIngredientScanner("apple.jpg",["apple", "cherry", "banana"])
 
 if __name__ == "__main__":
     
