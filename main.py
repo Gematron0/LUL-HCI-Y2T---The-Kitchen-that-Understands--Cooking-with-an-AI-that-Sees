@@ -7,14 +7,18 @@ import streamlit as st
 # file imports
 import filesInitialise
 import convertRecipesIntoClass
-import searchRecipes
-import ImageToIngredientScanner
+import Tools.search as search
+import Tools.ingredientScanner as ingredientScanner
+import Tools.downlodeSubPrograms as downlodeSubPrograms
 
 def main():
     logging.debug(f"Program started! [PID: {os.getpid()}]")
 
     # check the files to see if they exist and if not, create them
     filesInitialise.CheckIfRootFileExists()
+
+    # download all dependence
+    downlodeSubPrograms.downlodeSubPrograms()
 
     # creating the ui
     AppUi = st.container()
@@ -32,7 +36,7 @@ def main():
     AllRecipes[2].Add_Ingredient("Cherry", 50, "kg")
     AllRecipes[2].Add_Ingredient("Cherry", 50, "kg")
 
-    output = ImageToIngredientScanner.ImageToIngredientScanner("apple.jpg",["apple", "cherry", "banana"])
+    # output = ingredientScanner.ImageToIngredientScanner("apple.jpg",["apple", "cherry", "banana"])
 
 if __name__ == "__main__":
     
