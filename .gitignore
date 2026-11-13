@@ -218,3 +218,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# llm model
+yolov8x-worldv2.pt
+*.pt
+
+# immage files
+*.jpg

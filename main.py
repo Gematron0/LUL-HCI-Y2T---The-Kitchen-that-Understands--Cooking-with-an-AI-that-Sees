@@ -7,7 +7,9 @@ import streamlit as st
 # file imports
 import filesInitialise
 import convertRecipesIntoClass
-import searchRecipes
+import Tools.search as search
+import Tools.ingredientScanner as ingredientScanner
+import Tools.downlodeSubPrograms as downlodeSubPrograms
 
 def main():
     logging.debug(f"Program started! [PID: {os.getpid()}]")
@@ -15,21 +17,23 @@ def main():
     # check the files to see if they exist and if not, create them
     filesInitialise.CheckIfRootFileExists()
 
+    # download all dependence
+    downlodeSubPrograms.downlodeSubPrograms()
+
     # creating the ui
     AppUi = st.container()
 
     # lode up all the recipes so that it can get displayed inside of the streamlit app into a class
     AllRecipes, RecipeKeys = convertRecipesIntoClass.ConvertRecipesIntoClass(AppUi)
 
-    
     # how to get elements form the class
     # logging.warning(f"{AllRecipes[RecipeKeys["test3"]].GetTotalSteps()}")
     # logging.warning(f"{AllRecipes[RecipeKeys["test3"]].Get_step(1).getStepTitle()}")
     AllRecipes[0].Add_Ingredient("Banana", 20, "g")
     AllRecipes[0].Add_Ingredient("Cherry", 50, "kg")
-    AllRecipes[2].Add_Ingredient("Cherry", 50, "kg")
-    AllRecipes[2].Add_Ingredient("Cherry", 50, "kg")
-    AllRecipes[2].Add_Ingredient("Cherry", 50, "kg")
+    AllRecipes[2].Add_Ingredient("Cherry", 70, "g")
+
+    # code function that you need below hear
 
 if __name__ == "__main__":
     
