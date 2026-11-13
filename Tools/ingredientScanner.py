@@ -30,7 +30,7 @@ def ImageToIngredientScanner(ImagePath, TargetIngredients) -> set:
     
     set_classes(TargetIngredients)
 
-    Predictions = model.predict(ImagePath, conf=0.05, iou=0.5, agnostic_nms=False)
+    Predictions = model.predict(ImagePath, conf=0.2, iou=0.5, agnostic_nms=False)
 
     logging.debug(f"AI results: {Predictions}")
 

@@ -222,3 +222,6 @@ __marimo__/
 # llm model
 yolov8x-worldv2.pt
 *.pt
+
+# immage files
+*.jpg

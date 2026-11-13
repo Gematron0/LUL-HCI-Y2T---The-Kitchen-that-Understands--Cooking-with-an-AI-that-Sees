@@ -36,7 +36,60 @@ def main():
     AllRecipes[2].Add_Ingredient("Cherry", 50, "kg")
     AllRecipes[2].Add_Ingredient("Cherry", 50, "kg")
 
-    # output = ingredientScanner.ImageToIngredientScanner("apple.jpg",["apple", "cherry", "banana"])
+    ingredients = [
+    "garlic",
+    "yellow onion",
+    "shallot",
+    "scallion",
+    "ginger",
+    "carrot",
+    "celery",
+    "bell pepper",
+    "jalapeno",
+    "tomato",
+    "cherry tomato",
+    "spinach",
+    "kale",
+    "broccoli",
+    "cauliflower",
+    "zucchini",
+    "potato",
+    "sweet potato",
+    "button mushroom",
+    "cucumber",
+    "basil",
+    "cilantro",
+    "parsley",
+    "rosemary",
+    "thyme",
+    "oregano",
+    "bay leaf",
+    "cumin",
+    "paprika",
+    "cinnamon",
+    "chicken breast",
+    "ground beef",
+    "salmon fillet",
+    "shrimp",
+    "tofu",
+    "egg",
+    "unsalted butter",
+    "heavy cream",
+    "milk",
+    "parmesan cheese",
+    "olive oil",
+    "sesame oil",
+    "soy sauce",
+    "apple cider vinegar",
+    "honey",
+    "all-purpose flour",
+    "white rice",
+    "spaghetti",
+    "black beans",
+    "chicken broth",
+]
+
+    output = ingredientScanner.ImageToIngredientScanner("2ndtest.jpg",ingredients)
 
 if __name__ == "__main__":
     
