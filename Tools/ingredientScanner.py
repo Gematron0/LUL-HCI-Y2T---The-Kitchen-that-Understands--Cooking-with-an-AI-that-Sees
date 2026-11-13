@@ -43,8 +43,11 @@ def ImageToIngredientScanner(ImagePath, TargetIngredients) -> set:
             for box in result.boxes:
                 cls_id = int(box.cls[0])
                 name = model.names[cls_id]
+                conf = float(box.conf[0])
+                logging.debug(f"{name}: {conf:.2%}")
+
                 FoundIngredient.add(name)
-            
+
     logging.info(f"Completed, time: {time.time()-StartTime}")
     logging.info(f"cleaned up results: {FoundIngredient}")
     return FoundIngredient
