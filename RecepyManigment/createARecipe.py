@@ -61,23 +61,31 @@ def CreateRecipe(Name, NSteps):
     logging.debug(f"Changed working directory to new recipe folder: {os.getcwd()}")
 
     # writing information as a dictionary to the .json file
-    RecipeInfo = JSONRecipeDefaults.getRecipeInfoDefault(Name)
-    logging.debug(f"Recipe info to be written to file: {RecipeInfo}")
-
     # creating a .json file that containing the recipe name image path and other basic information about the recipe
     RecipeFilePath = Path.cwd() / "RecipeInfo.json"
     logging.debug(f"Creating a new recipe info file at: {RecipeFilePath}")
     with open(RecipeFilePath, 'w') as RecipeFile:
-        json.dump(RecipeInfo, RecipeFile, indent=4)
+        json.dump(JSONRecipeDefaults.getRecipeInfoDefault(Name), RecipeFile, indent=4)
     logging.debug(f"Wrote recipe info to file: {RecipeFilePath}")
 
     # creating ingredient.json
     IngredientFilePath = Path.cwd() / "Ingredients.json"
     logging.debug(f"Creating a ingredient info file at: {IngredientFilePath}")
     with open(IngredientFilePath, 'w') as IngredientFile:
-        json.dump({}, IngredientFile, indent=4)
+        json.dump(JSONRecipeDefaults.getIngredientsInfoDefault(), IngredientFile, indent=4)
     logging.debug(f"Wrote ingredient info to file: {IngredientFilePath}")
 
+    EquipmentFilePath = Path.cwd() / "Equipment.json"
+    logging.debug(f"Creating a ingredient info file at: {IngredientFilePath}")
+    with open(EquipmentFilePath, 'w') as EquipmentFile:
+        json.dump(JSONRecipeDefaults.getEquipmentInfoDefault(), EquipmentFile, indent=4)
+    logging.debug(f"Wrote Equipment info to file: {EquipmentFilePath}")
+
+    AllergenFilePath = Path.cwd() / "Allergen.json"
+    logging.debug(f"Creating a Allergen info file at: {AllergenFilePath}")
+    with open(AllergenFilePath, 'w') as AllergenFile:
+        json.dump(JSONRecipeDefaults.getAllergenInfoDefault(), AllergenFile, indent=4)
+    logging.debug(f"Wrote Allergen info to file: {AllergenFilePath}")
 
     # creating the step folders and writing the step information to a .json file
     for i in range(NSteps):

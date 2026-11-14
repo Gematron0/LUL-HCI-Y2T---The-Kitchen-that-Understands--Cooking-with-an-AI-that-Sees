@@ -30,9 +30,6 @@ def main():
     # how to get elements form the class
     # logging.warning(f"{AllRecipes[RecipeKeys["test3"]].GetTotalSteps()}")
     # logging.warning(f"{AllRecipes[RecipeKeys["test3"]].Get_step(1).getStepTitle()}")
-    AllRecipes[0].Add_Ingredient("Banana", 20, "g")
-    AllRecipes[0].Add_Ingredient("Cherry", 50, "kg")
-    AllRecipes[2].Add_Ingredient("Cherry", 70, "g")
 
     # code function that you need below hear
     getAllItems.getAllAllergen(AllRecipes)

@@ -1,9 +1,10 @@
 {
-    "RecipeName": "test2",
+    "RecipeName": "Boiled pasta",
     "DisplayRecipeInSearch": true,
     "ImagePath": "",
     "ImageCenter": [
         0,
         0
-    ]
+    ],
+    "Servings": 1
 }

@@ -1,1 +1,12 @@
-{}
+[
+    {
+        "ingredient": "egg",
+        "amount": "1",
+        "type": "stk"
+    },
+    {
+        "ingredient": "vinegar",
+        "amount": ".5",
+        "type": "tbsp"
+    }
+]

@@ -10,10 +10,30 @@ def getRecipeInfoDefault(Name):
     """
     return {
         "RecipeName": Name,
-        "DisplayRecipeInSearch": false,
+        "DisplayRecipeInSearch": False,
         "ImagePath": "",
         "ImageCenter": [0, 0],
+        "Servings": 4
     }
+
+def getEquipmentInfoDefault():
+    return ["", "", ""]
+
+def getIngredientsInfoDefault():
+    """
+    Get the default recipe information for a given recipe name.
+
+    Parameters:
+    name (str): The name of the recipe.
+
+    Returns:
+    dict: A dictionary containing the default recipe information.
+    """
+    return [{"ingredient": "", "amount": "", "type": ""}, {"ingredient": "", "amount": "", "type": ""}]
+
+def getAllergenInfoDefault():
+    return ["", "", ""]
+
 
 def getStepInfoDefault(StepNumber):
     """

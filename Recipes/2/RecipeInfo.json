@@ -1,9 +1,10 @@
 {
-    "RecipeName": "test3",
+    "RecipeName": "Boiled egg",
     "DisplayRecipeInSearch": true,
     "ImagePath": "",
     "ImageCenter": [
         0,
         0
-    ]
+    ],
+    "Servings": 1
 }

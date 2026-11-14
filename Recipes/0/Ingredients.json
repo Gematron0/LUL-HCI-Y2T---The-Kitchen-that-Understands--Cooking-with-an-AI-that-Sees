@@ -1,1 +1,37 @@
-{}
+[
+    {
+        "ingredient": "chicken breast",
+        "amount": "800",
+        "type": "g"
+    },
+    {
+        "ingredient": "rice",
+        "amount": "150",
+        "type": "g"
+    },
+    {
+        "ingredient": "brown sugar",
+        "amount": "4",
+        "type": "tbs"
+    },
+    {
+        "ingredient": "honey",
+        "amount": "2",
+        "type": "tbs"
+    },
+    {
+        "ingredient": "soy sauce",
+        "amount": "6",
+        "type": "tbs"
+    },
+    {
+        "ingredient": "vinegar",
+        "amount": ".5",
+        "type": "tbs"
+    },
+    {
+        "ingredient": "flower",
+        "amount": "200",
+        "type": "g"
+    }
+]

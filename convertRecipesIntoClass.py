@@ -55,15 +55,17 @@ def ConvertRecipesIntoClass(AppUi):
 
         RecipeName = data.get("RecipeName")
         ImagePath = data.get("ImagePath")
+        ImageCenter = data.get("ImageCenter")
+        Servings = data.get("Servings")
 
         if data.get("DisplayRecipeInSearch") == False:
             logging.info(f"recipe {RecipeName} has been ignored and skipped")
             continue
 
-        Recipes = recipesClass.Recipes(RecipeID, RecipeName, ImagePath, 0, 0, 0) #<- the number of servings is temp bc currently its not tracked also image center
+        Recipe = recipesClass.Recipes(RecipeID, RecipeName, ImagePath, Servings, ImageCenter[0], ImageCenter[1]) #<- the number of servings is temp bc currently its not tracked also image center
 
         # adding all of the steps
-        json_steps = [file.name for file in RecipesDir.rglob("*.json") if file.name not in ["RecipeInfo.json","Ingredients.json"]]
+        json_steps = [file.name for file in RecipesDir.rglob("*.json") if file.name not in ["RecipeInfo.json","Ingredients.json","Equipment.json","Allergen.json"]]
         json_steps.sort()
         logging.debug(f"All steps found: {json_steps}")
 
@@ -78,10 +80,35 @@ def ConvertRecipesIntoClass(AppUi):
             StepImage = data.get("ImagePath")
             StepImageCoordinates = data.get("ImageCenter")
 
-            Recipes.Add_Step(i, StepTitle, StepInstruction, StepImage, StepImageCoordinates[0], StepImageCoordinates[1])
+            Recipe.Add_Step(i, StepTitle, StepInstruction, StepImage, StepImageCoordinates[0], StepImageCoordinates[1])
+
+        # adding all of the ingredients
+        RecipeFilePath = RecipesDir / "Ingredients.json"
+        with open(RecipeFilePath, "r", encoding="utf-8") as file:
+            data = json.load(file)
+
+        for item in data:
+            Recipe.Add_Ingredient(item["ingredient"], item["amount"], item["type"])
+
+        # adding all of the equipment
+        RecipeFilePath = RecipesDir / "Equipment.json"
+        with open(RecipeFilePath, "r", encoding="utf-8") as file:
+            data = json.load(file)
+
+        for item in data:
+            Recipe.add_Equipment(item)
+
+        # adding all of the equipment
+        RecipeFilePath = RecipesDir / "Allergen.json"
+        with open(RecipeFilePath, "r", encoding="utf-8") as file:
+            data = json.load(file)
+
+        for item in data:
+            Recipe.add_Allergies(item)
+
 
         # adding it to the total of all recipes
-        AllRecipes.append(Recipes)
+        AllRecipes.append(Recipe)
         RecipeKeys[RecipeName] = len(AllRecipes)-1
 
     AppProgressBar.empty()

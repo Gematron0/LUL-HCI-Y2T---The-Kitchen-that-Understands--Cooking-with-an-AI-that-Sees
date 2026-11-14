@@ -1,1 +1,17 @@
-{}
+[
+    {
+        "ingredient": "pasta",
+        "amount": "150",
+        "type": "g"
+    },
+    {
+        "ingredient": "salt",
+        "amount": "4",
+        "type": "g"
+    },
+    {
+        "ingredient": "butter",
+        "amount": "4",
+        "type": "g"
+    }
+]
