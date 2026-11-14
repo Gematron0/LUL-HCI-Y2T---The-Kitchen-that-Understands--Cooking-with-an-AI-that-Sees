@@ -32,9 +32,6 @@ def main():
     # logging.warning(f"{AllRecipes[RecipeKeys["test3"]].Get_step(1).getStepTitle()}")
 
     # code function that you need below hear
-    getAllItems.getAllAllergen(AllRecipes)
-    getAllItems.getAllEquipment(AllRecipes)
-    getAllItems.getAllIngredient(AllRecipes)
 
 if __name__ == "__main__":
     
