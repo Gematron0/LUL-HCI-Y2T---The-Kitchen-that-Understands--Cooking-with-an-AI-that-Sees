@@ -10,6 +10,7 @@ import convertRecipesIntoClass
 import Tools.search as search
 import Tools.ingredientScanner as ingredientScanner
 import Tools.downlodeSubPrograms as downlodeSubPrograms
+import Tools.getAllItems as getAllItems
 
 def main():
     logging.debug(f"Program started! [PID: {os.getpid()}]")
@@ -34,6 +35,9 @@ def main():
     AllRecipes[2].Add_Ingredient("Cherry", 70, "g")
 
     # code function that you need below hear
+    getAllItems.getAllAllergen(AllRecipes)
+    getAllItems.getAllEquipment(AllRecipes)
+    getAllItems.getAllIngredient(AllRecipes)
 
 if __name__ == "__main__":
     
