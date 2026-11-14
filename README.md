@@ -17,6 +17,7 @@ there are 2 diffrent ways
 1) automatic way
 * open the terminal in where the Makefile is at (where also main.py is at) and run ```make setup```
 * then run either ```streamlit run main.py``` or ```make run```, dose not matter, they both do the same thing
+* ```make all``` will run both ```make setup``` and ```make run```
 
 2) manual way
 * go create a vert environment ```python3 -m venv venv``` and activate it
@@ -25,6 +26,6 @@ there are 2 diffrent ways
 * install the packages needed to run the program```pip install -r requirements.txt```
 * run the command ```streamlit run main.py```
 
-* if you have new packages you added, run this command ```pip freeze > requirements.txt```
+if you have new packages you added, run this command ```pip freeze > requirements.txt```
 
 you will know if the code ran by at the current stage, there is a flash of a loading screen, and then just a blank window

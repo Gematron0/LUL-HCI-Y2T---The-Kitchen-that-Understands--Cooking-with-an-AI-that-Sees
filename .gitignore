@@ -225,3 +225,9 @@ yolov8x-worldv2.pt
 
 # immage files
 *.jpg
+
+# ai
+*.pt 
+
+# imamges
+*.jpg
