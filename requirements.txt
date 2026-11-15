@@ -117,3 +117,17 @@ urllib3==2.8.0
 uvicorn==0.54.0
 watchdog==6.0.0
 websockets==17.4
+
+# speech to text (task 18)
+av==18.1.0
+ctranslate2==4.9.0
+faster-whisper==1.2.1
+flatbuffers==25.12.19
+hf-xet==1.8.0
+httpcore2==2.16.0
+httpx2==2.16.0
+huggingface_hub==2.4.0
+onnxruntime==1.32.0
+PyYAML==6.0.3
+tokenizers==0.23.3
+truststore==0.10.5
