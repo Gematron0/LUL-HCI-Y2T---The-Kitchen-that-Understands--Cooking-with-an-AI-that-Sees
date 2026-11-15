@@ -7,7 +7,7 @@ import streamlit as st
 # file imports
 import filesInitialise
 import convertRecipesIntoClass
-import Tools.search as search
+import Tools.searchRecipes as searchRecipes
 import Tools.ingredientScanner as ingredientScanner
 import Tools.downlodeSubPrograms as downlodeSubPrograms
 import Tools.getAllItems as getAllItems
