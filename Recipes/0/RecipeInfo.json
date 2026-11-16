@@ -6,5 +6,8 @@
         0,
         0
     ],
-    "Servings": 4
+    "Servings": 4,
+    "ExpectedTimeInDays": 0,
+    "ExpectedTimeInHours": 1,
+    "ExpectedTimeInMinuets": 0
 }

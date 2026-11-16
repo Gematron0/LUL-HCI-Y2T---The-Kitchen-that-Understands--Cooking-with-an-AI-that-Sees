@@ -13,7 +13,10 @@ def getRecipeInfoDefault(Name):
         "DisplayRecipeInSearch": False,
         "ImagePath": "",
         "ImageCenter": [0, 0],
-        "Servings": 4
+        "Servings": 4,
+        "ExpectedTimeInDays": 0,
+        "ExpectedTimeInHours": 1,
+        "ExpectedTimeInMinuets": 0
     }
 
 def getEquipmentInfoDefault():
