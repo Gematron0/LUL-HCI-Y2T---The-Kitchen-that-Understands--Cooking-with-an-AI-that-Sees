@@ -231,3 +231,6 @@ yolov8x-worldv2.pt
 
 # imamges
 *.jpg
+
+# audio
+*.mp3

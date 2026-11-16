@@ -5,6 +5,14 @@ from ultralytics.engine.results import Results as YOLOResults
 import logging
 import time
 
+def downlodeIngredientScannerModel() -> None:
+    Start = time.time()
+    logging.info(f"Downloading yolov8x-worldv2.pt")
+    YOLO("yolov8x-worldv2.pt")
+    logging.info(f"DownLode compleat; time: {Start-time.time()}")
+    return None
+
+
 def ImageToIngredientScanner(ImagePath, TargetIngredients) -> set:
     logging.info(f"Started Image to ingredient scanning")
     StartTime = time.time()

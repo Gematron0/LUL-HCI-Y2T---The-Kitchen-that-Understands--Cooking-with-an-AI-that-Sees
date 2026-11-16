@@ -1,14 +1,10 @@
-from ultralytics import YOLO
-from ultralytics.engine.results import Results as YOLOResults
-import logging
-import time
+import Tools.ingredientScanner as ingredientScanner
 import Tools.speechToText as speechToText
 
 def downlodeSubPrograms() -> None:
-    Start = time.time()
-    logging.info(f"Downloading yolov8x-worldv2.pt")
-    YOLO("yolov8x-worldv2.pt")
-    logging.info(f"DownLode compleat; time: {Start-time.time()}")
+
+    # downlode ingredient scanner model
+    ingredientScanner.downlodeIngredientScannerModel()
 
     # speech to text model
     speechToText.downlodeSpeechToTextModel()
