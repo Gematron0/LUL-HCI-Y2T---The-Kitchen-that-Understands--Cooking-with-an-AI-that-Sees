@@ -57,12 +57,16 @@ def ConvertRecipesIntoClass(AppUi):
         ImagePath = data.get("ImagePath")
         ImageCenter = data.get("ImageCenter")
         Servings = data.get("Servings")
+        TimeInDays = data.get("ExpectedTimeInDays")
+        TimeInHours = data.get("ExpectedTimeInHours")
+        TimeInMinuets = data.get("ExpectedTimeInMinuets")
 
         if data.get("DisplayRecipeInSearch") == False:
             logging.info(f"recipe {RecipeName} has been ignored and skipped")
             continue
 
-        Recipe = recipesClass.Recipes(len(AllRecipes), RecipeName, ImagePath, Servings, ImageCenter[0], ImageCenter[1]) #<- the number of servings is temp bc currently its not tracked also image center
+        Recipe = recipesClass.Recipes(len(AllRecipes), RecipeName, ImagePath, Servings, 
+                                      ImageCenter[0], ImageCenter[1], TimeInDays, TimeInHours, TimeInMinuets)
 
         # adding all of the steps
         json_steps = [file.name for file in RecipesDir.rglob("*.json") if file.name not in ["RecipeInfo.json","Ingredients.json","Equipment.json","Allergen.json"]]
