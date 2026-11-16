@@ -4,7 +4,7 @@ class Recipes:
     """
     A class to represent a recipe with its details.
     """
-    def __init__(self, r_id, n, ip, x, y, nos) -> None:
+    def __init__(self, r_id, n, ip, x, y, nos, d, h, m) -> None:
         self.recipe_id = int(r_id)
         self.name = str(n)
         self.NumberOfServings = nos
@@ -20,6 +20,8 @@ class Recipes:
         self.Ingredients = []
         self.Equipment = []
         self.Allergies = []
+
+        self.recipeExpectedTimeLength = {"Days": d, "Hours": h, "Minutes": m}
         logging.debug(f"Created Recipe with ID: {self.recipe_id}, and name {self.name}")
 
     def get_recipe_id(self) -> int:
@@ -66,6 +68,9 @@ class Recipes:
 
     def get_Allergies(self) -> list:
         return self.Allergies
+
+    def get_RecipeExpectedTime(self) -> dict:
+        return self.recipeExpectedTimeLength
 
 
 class Steps:
