@@ -15,5 +15,8 @@ def TextToSpeech(Text, AudioPath="speech.wav") -> str:
     if Voice is None:
         downlodeTextToSpeechModel()
     with wave.open(AudioPath, "wb") as WavFile:
-        Voice.synthesize_wav(Text, WavFile)
+        WavFile.setnchannels(1)
+        WavFile.setsampwidth(2)
+        WavFile.setframerate(Voice.config.sample_rate)
+        Voice.synthesize_wav(Text, WavFile, set_wav_format=False)
     return AudioPath
