@@ -13,6 +13,7 @@ import Tools.ingredientScanner as ingredientScanner
 import Tools.downlodeSubPrograms as downlodeSubPrograms
 import Tools.getAllItems as getAllItems
 import Tools.speechToText as speechToText
+import Tools.textToSpeech as textToSpeech
 
 def main():
     logging.debug(f"Program started! [PID: {os.getpid()}]")
