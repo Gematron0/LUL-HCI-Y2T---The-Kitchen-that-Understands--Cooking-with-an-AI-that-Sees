@@ -37,10 +37,19 @@ def searchRecipes(SearchQuery, RecipesClass) -> list:
     # grab the list now for what search types exists and sends it to be searched, give ing a set of recipes names
 
     Results = []
+    BannedResults = []
     for searchType in SearchTypes:
         for searchQuery in SearchQuery[searchType]:
-            Results.append(_searchIndividualQuery(RecipesClass, searchType, searchQuery))
+
+            # banning the result if there is an allergy conflict
+            if searchType == "Allergen":
+                BannedResults.append(_searchIndividualQuery(RecipesClass, searchType, searchQuery))
+            else:
+                Results.append(_searchIndividualQuery(RecipesClass, searchType, searchQuery))
+
+            logging.debug(f"Currently on: {searchType}; {searchQuery}")
             logging.debug(f"Results: {Results}")
+            logging.debug(f"BannedResults: {BannedResults}")
 
     
     # multiline test, this code works, I dont know if its faster since the DB is to small, this is for the future, but currently its slower
@@ -69,6 +78,15 @@ def searchRecipes(SearchQuery, RecipesClass) -> list:
         for PossibleResult in Values:
             WeightedResults[PossibleResult] += 1
             logging.debug(f"Added element for recipe ID: {PossibleResult}: #{WeightedResults[PossibleResult]}")
+
+    for Values in BannedResults:
+        if len(Values) == 0:
+            logging.debug(f"Contained nothing, next set")
+            continue
+
+        for PossibleResult in Values:
+            WeightedResults[PossibleResult] = 0
+            logging.debug(f"reset element for recipe ID: {PossibleResult}: #{WeightedResults[PossibleResult]} because it was a allergen")
 
     logging.debug(f"Weighted results are: {WeightedResults}")
 
@@ -118,8 +136,8 @@ def _allergenSearchType(RecipesClass, SearchQuery) -> set:
             logging.debug(f"on {Recipes.get_name()} dose not have any allergens")
 
         logging.debug(f"Checking if {SearchQuery} dose not contain {Allergens}")
-        if SearchQuery.lower() not in [Item.lower() for Item in Allergens]:
-            logging.debug(f"No match found")
+        if SearchQuery.lower() in [Item.lower() for Item in Allergens]:
+            logging.debug(f"match found")
             ValidSearchedRecipes.add(Recipes.get_recipe_id())
 
 
