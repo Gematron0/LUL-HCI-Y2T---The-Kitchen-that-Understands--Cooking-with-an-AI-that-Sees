@@ -4,6 +4,7 @@ import os
 import time
 import streamlit as st
 import sys
+import speech_recognition as sr
 
 # file imports
 import filesInitialise
@@ -13,6 +14,8 @@ import Tools.ingredientScanner as ingredientScanner
 import Tools.downlodeSubPrograms as downlodeSubPrograms
 import Tools.getAllItems as getAllItems
 import Tools.speechToText as speechToText
+import Tools.passiveVoiceDetection as passiveVoiceDetection
+
 
 def main():
     logging.debug(f"Program started! [PID: {os.getpid()}]")
@@ -34,12 +37,15 @@ def main():
     # logging.warning(f"{AllRecipes[RecipeKeys["test3"]].Get_step(1).getStepTitle()}")
 
     # code function that you need below hear
+    passiveVoiceDetection.start(AppUi)
+
+
 
 if __name__ == "__main__":
     
     # Configure logging
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=logging.INFO,
         format='[%(levelname)s] [%(asctime)s] [%(filename)s | %(funcName)s()] %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
