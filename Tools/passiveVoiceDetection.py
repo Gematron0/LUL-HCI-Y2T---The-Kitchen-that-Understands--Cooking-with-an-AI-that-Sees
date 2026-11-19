@@ -1,22 +1,26 @@
+# this file contains generative AI
+
 import logging
 import os
 import threading
 import time
 import traceback
+import wave
 import numpy as np
 import sounddevice as sd
-import speech_recognition as sr
 import streamlit as st
 from openwakeword.model import Model
 
 
 class _VoiceWorker:
-    def __init__(self, model_path="hey_cookbook.onnx", device=4):
+    def __init__(self, model_path="hey_cookbook.onnx", device=None, output_file="command.wav"):
         self.model_path = model_path
         self.wake_word = os.path.splitext(os.path.basename(model_path))[0]
         self.device = device
+        self.output_file = output_file
+
         self.status = f"Initializing '{self.wake_word.replace('_', ' ')}'..."
-        self.last_command = ""
+        self.has_new_audio = False  # Flag to let main.py know a new recording is ready
         self.running = False
         self.lock = threading.Lock()
         logging.info(f"[_VoiceWorker.__init__] Initialized with model='{self.model_path}'")
@@ -36,7 +40,6 @@ class _VoiceWorker:
 
             oww_model = Model(wakeword_model_paths=[self.model_path])
             logging.info(f"[_listen_loop] Active models: {list(oww_model.models.keys())}")
-            recognizer = sr.Recognizer()
 
             with self.lock:
                 self.status = f"Listening for '{self.wake_word.replace('_', ' ')}'..."
@@ -75,8 +78,7 @@ class _VoiceWorker:
 
                             if score > 0.5:
                                 logging.info(f">>> WAKE WORD TRIGGERED (score={score:.4f}) <<<")
-                                # Immediately record 5 seconds using the already-open stream
-                                self._record_and_transcribe(stream, recognizer, RATE, CHUNK)
+                                self._record_audio(stream, RATE, CHUNK)
                                 oww_model.reset()
                                 max_score_seen = 0.0
                                 with self.lock:
@@ -93,86 +95,100 @@ class _VoiceWorker:
             with self.lock:
                 self.status = f"Fatal voice error: {fatal_err}"
 
-    def _record_and_transcribe(self, stream, recognizer, rate, chunk_size):
-        DURATION = 5  # Seconds to record
-        total_chunks = int((rate * DURATION) / chunk_size)  # 62 chunks (~5.0s)
-        frames = []
+    def _record_audio(self, stream, rate, chunk_size):
+        MAX_DURATION = 7.0       # Maximum seconds to record
+        SILENCE_DURATION = 1.5   # Stop after 1,5 second of silence
+        SILENCE_THRESHOLD = 300  # Adjust based on your mic_rms heartbeat in the logs
 
-        logging.info(f"[_record_and_transcribe] Recording {DURATION}s ({total_chunks} chunks) immediately...")
+        max_chunks = int((rate * MAX_DURATION) / chunk_size)               # ~62 chunks (5.0s)
+        silence_chunks_limit = int((rate * SILENCE_DURATION) / chunk_size) # ~12 chunks (1.0s)
+
+        frames = []
+        silent_chunks = 0
+
+        logging.info(f"Recording up to {MAX_DURATION}s (or {SILENCE_DURATION}s silence)...")
 
         try:
-            for i in range(total_chunks):
+            for i in range(max_chunks):
                 if not self.running:
                     return
-                # Update countdown in the UI every ~1 second
+
                 if i % 12 == 0:
-                    seconds_left = max(1, DURATION - int((i * chunk_size) / rate))
+                    seconds_left = max(1, int(MAX_DURATION - (i * chunk_size) / rate))
                     with self.lock:
-                        self.status = f"🎙️ Speak now! Recording ({seconds_left}s)..."
+                        self.status = f"Speak now! Recording ({seconds_left}s)..."
 
                 data, _ = stream.read(chunk_size)
                 frames.append(bytes(data))
 
+                # Calculate volume (RMS) of the current chunk
+                audio_array = np.frombuffer(data, dtype=np.int16)
+                rms = float(np.sqrt(np.mean(audio_array.astype(np.float32) ** 2)))
+
+                if rms < SILENCE_THRESHOLD:
+                    silent_chunks += 1
+                else:
+                    silent_chunks = 0
+
+                # Stop early if quiet for 1 second (skip checking during the first 0.5s)
+                if i > 6 and silent_chunks >= silence_chunks_limit:
+                    logging.info(f"[_record_audio] Detected {SILENCE_DURATION}s of silence. Stopping early.")
+                    break
+
             raw_audio = b"".join(frames)
-            logging.info(f"[_record_and_transcribe] Finished 5s recording ({len(raw_audio)} bytes).")
+
+            # Always overwrite the same file
+            with wave.open(self.output_file, "wb") as wf:
+                wf.setnchannels(1)
+                wf.setsampwidth(2)  # 2 bytes = 16-bit audio
+                wf.setframerate(rate)
+                wf.writeframes(raw_audio)
+
+            logging.info(f"[_record_audio] Saved recording to '{self.output_file}' ({len(raw_audio)} bytes).")
 
             with self.lock:
-                self.status = "Processing speech..."
+                self.has_new_audio = True
+                self.status = "Audio saved!"
 
-            audio_data = sr.AudioData(raw_audio, rate, 2)
-            command_text = recognizer.recognize_google(audio_data)
-            logging.info(f"[_record_and_transcribe] Transcription: '{command_text}'")
-
-            with self.lock:
-                self.last_command = command_text
-
-        except sr.UnknownValueError:
-            logging.info("[_record_and_transcribe] Speech was unintelligible.")
-            with self.lock:
-                self.status = "Could not understand command."
-            time.sleep(1.5)
-        except sr.RequestError as req_err:
-            logging.info(f"[_record_and_transcribe] Speech API error: {req_err}")
-            with self.lock:
-                self.status = "Speech recognition service error."
-            time.sleep(1.5)
         except Exception as e:
-            logging.info(f"[_record_and_transcribe] Unexpected error: {e}\n{traceback.format_exc()}")
+            logging.info(f"[_record_audio] Unexpected error: {e}\n{traceback.format_exc()}")
             with self.lock:
-                self.status = "Error processing speech."
+                self.status = "Error saving audio."
             time.sleep(1.5)
+
+    @staticmethod
+    def find_input_device(name_substring: str):
+        """Finds the first input device index matching the given name substring."""
+        if not name_substring:
+            return None  # Falls back to system default
+
+        for idx, dev in enumerate(sd.query_devices()):
+            if dev["max_input_channels"] > 0 and name_substring.lower() in dev["name"].lower():
+                logging.info(f"Matched audio device [{idx}]: {dev['name']}")
+                return idx
+
+        logging.warning(f"Device '{name_substring}' not found. Falling back to system default.")
+        return None
 
 
 @st.cache_resource
 def _get_worker():
     logging.info("[_get_worker] Creating cached _VoiceWorker singleton...")
-    worker = _VoiceWorker(model_path="hey_cookbook.onnx", device=4)
+    worker = _VoiceWorker(model_path="hey_cookbook.onnx", device=None, output_file="command.wav")
     worker.start()
     return worker
 
 
 def start(ui_container=None):
-    """Call this from main.py to start passive listening and render status."""
-    worker = _get_worker()
-    target = ui_container if ui_container is not None else st
-
-    @st.fragment(run_every="0.5s")
-    def _voice_status_ui():
-        with worker.lock:
-            status = worker.status
-            command = worker.last_command
-
-        with target:
-            st.caption(f"🎙️ **Voice Assistant:** {status}")
-            if command:
-                st.info(f"**Last Voice Command:** {command}")
-
-    _voice_status_ui()
+    """Call this from main.py to start passive listening silently in the background."""
+    _get_worker()
 
 
-def get_latest_command():
+def get_latest_audio_file():
+    """Returns 'command.wav' once when a new recording finishes, otherwise returns empty string."""
     worker = _get_worker()
     with worker.lock:
-        cmd = worker.last_command
-        worker.last_command = ""
-    return cmd
+        if worker.has_new_audio:
+            worker.has_new_audio = False
+            return worker.output_file
+    return ""

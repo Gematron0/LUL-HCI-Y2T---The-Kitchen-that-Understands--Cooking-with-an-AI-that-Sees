@@ -234,3 +234,4 @@ yolov8x-worldv2.pt
 
 # audio
 *.mp3
+*.wav
