@@ -1,3 +1,5 @@
+# this file contains generative AI
+
 import logging
 import os
 import threading
@@ -5,41 +7,67 @@ import time
 import traceback
 import numpy as np
 import sounddevice as sd
-import speech_recognition as sr
 import streamlit as st
 from openwakeword.model import Model
 
+import Tools.VoiceModule.activeVoiceDetection as activeVoiceDetection
+
 
 class _VoiceWorker:
-    def __init__(self, model_path="hey_cookbook.onnx", device=4):
+    def __init__(self, model_path="hey_cookbook.onnx", device=None, output_file="command.wav"):
         self.model_path = model_path
         self.wake_word = os.path.splitext(os.path.basename(model_path))[0]
         self.device = device
+        self.output_file = output_file
+
         self.status = f"Initializing '{self.wake_word.replace('_', ' ')}'..."
-        self.last_command = ""
+        self.has_new_audio = False  # Flag to let main.py know a new recording is ready
         self.running = False
+        self.thread = None
         self.lock = threading.Lock()
-        logging.info(f"[_VoiceWorker.__init__] Initialized with model='{self.model_path}'")
+        logging.debug(f"initialized with model='{self.model_path}'")
 
     def start(self):
-        if not self.running:
-            self.running = True
-            thread = threading.Thread(target=self._listen_loop, name="VoiceListenerThread", daemon=True)
-            thread.start()
-            logging.info(f"[_VoiceWorker.start] Started background thread: {thread.name}")
+        with self.lock:
+            if not self.running:
+                self.running = True
+                self.thread = threading.Thread(
+                    target=self._listen_loop, 
+                    name="VoiceListenerThread", 
+                    daemon=True
+                )
+                self.thread.start()
+                logging.debug(f"Started background thread: {self.thread.name}")
+
+    def stop(self):
+        """Stops the audio stream and terminates the background listener thread."""
+        with self.lock:
+            if not self.running:
+                return
+            self.running = False
+            thread_to_join = self.thread
+
+        # Wait briefly outside the lock for the audio stream to finish its current 80ms chunk and close
+        if thread_to_join and thread_to_join.is_alive() and threading.current_thread() != thread_to_join:
+            thread_to_join.join(timeout=1.0)
+
+        self._update_status("Voice detection stopped.")
+        logging.info("Stopped passive wake-word listening.")
+
+    def _update_status(self, message: str):
+        with self.lock:
+            self.status = message
 
     def _listen_loop(self):
-        logging.info("[_listen_loop] Entered background listener thread.")
+        logging.debug("Entered background listener thread.")
         try:
             RATE = 16000
             CHUNK = 1280  # 80ms per chunk
 
             oww_model = Model(wakeword_model_paths=[self.model_path])
-            logging.info(f"[_listen_loop] Active models: {list(oww_model.models.keys())}")
-            recognizer = sr.Recognizer()
+            logging.debug(f"Active models: {list(oww_model.models.keys())}")
 
-            with self.lock:
-                self.status = f"Listening for '{self.wake_word.replace('_', ' ')}'..."
+            self._update_status(f"Listening for '{self.wake_word.replace('_', ' ')}'...")
 
             chunk_counter = 0
             max_score_seen = 0.0
@@ -68,111 +96,61 @@ class _VoiceWorker:
                             chunk_counter += 1
                             if chunk_counter % 62 == 0:
                                 rms = float(np.sqrt(np.mean(audio_array.astype(np.float32) ** 2)))
-                                logging.info(
+                                logging.debug(
                                     f"Heartbeat | mic_rms={rms:.1f} | max_score_last_5s={max_score_seen:.4f}"
                                 )
                                 max_score_seen = 0.0
 
                             if score > 0.5:
-                                logging.info(f">>> WAKE WORD TRIGGERED (score={score:.4f}) <<<")
-                                # Immediately record 5 seconds using the already-open stream
-                                self._record_and_transcribe(stream, recognizer, RATE, CHUNK)
+                                logging.info(f"WAKE WORD TRIGGERED (score={score:.4f}) ")
+                                activeVoiceDetection.start()
+
                                 oww_model.reset()
                                 max_score_seen = 0.0
-                                with self.lock:
-                                    self.status = f"Listening for '{self.wake_word.replace('_', ' ')}'..."
+                                if self.running:
+                                    self._update_status(f"Listening for '{self.wake_word.replace('_', ' ')}'...")
 
                 except Exception as loop_err:
+                    if not self.running:
+                        break  # Exit cleanly if stopped during an audio read
                     logging.warning(f"Inner loop exception: {loop_err}\n{traceback.format_exc()}")
-                    with self.lock:
-                        self.status = f"Audio error: {loop_err}"
+                    self._update_status(f"Audio error: {loop_err}")
                     time.sleep(1.0)
 
         except Exception as fatal_err:
             logging.error(f"FATAL thread crash: {fatal_err}\n{traceback.format_exc()}")
-            with self.lock:
-                self.status = f"Fatal voice error: {fatal_err}"
+            self._update_status(f"Fatal voice error: {fatal_err}")
+        finally:
+            self.running = False
 
-    def _record_and_transcribe(self, stream, recognizer, rate, chunk_size):
-        DURATION = 5  # Seconds to record
-        total_chunks = int((rate * DURATION) / chunk_size)  # 62 chunks (~5.0s)
-        frames = []
+    @staticmethod
+    def find_input_device(name_substring: str):
+        """Finds the first input device index matching the given name substring."""
+        if not name_substring:
+            return None  # Falls back to system default
 
-        logging.info(f"[_record_and_transcribe] Recording {DURATION}s ({total_chunks} chunks) immediately...")
+        for idx, dev in enumerate(sd.query_devices()):
+            if dev["max_input_channels"] > 0 and name_substring.lower() in dev["name"].lower():
+                logging.debug(f"Matched audio device [{idx}]: {dev['name']}")
+                return idx
 
-        try:
-            for i in range(total_chunks):
-                if not self.running:
-                    return
-                # Update countdown in the UI every ~1 second
-                if i % 12 == 0:
-                    seconds_left = max(1, DURATION - int((i * chunk_size) / rate))
-                    with self.lock:
-                        self.status = f"🎙️ Speak now! Recording ({seconds_left}s)..."
-
-                data, _ = stream.read(chunk_size)
-                frames.append(bytes(data))
-
-            raw_audio = b"".join(frames)
-            logging.info(f"[_record_and_transcribe] Finished 5s recording ({len(raw_audio)} bytes).")
-
-            with self.lock:
-                self.status = "Processing speech..."
-
-            audio_data = sr.AudioData(raw_audio, rate, 2)
-            command_text = recognizer.recognize_google(audio_data)
-            logging.info(f"[_record_and_transcribe] Transcription: '{command_text}'")
-
-            with self.lock:
-                self.last_command = command_text
-
-        except sr.UnknownValueError:
-            logging.info("[_record_and_transcribe] Speech was unintelligible.")
-            with self.lock:
-                self.status = "Could not understand command."
-            time.sleep(1.5)
-        except sr.RequestError as req_err:
-            logging.info(f"[_record_and_transcribe] Speech API error: {req_err}")
-            with self.lock:
-                self.status = "Speech recognition service error."
-            time.sleep(1.5)
-        except Exception as e:
-            logging.info(f"[_record_and_transcribe] Unexpected error: {e}\n{traceback.format_exc()}")
-            with self.lock:
-                self.status = "Error processing speech."
-            time.sleep(1.5)
+        logging.warning(f"Device '{name_substring}' not found. Falling back to system default.")
+        return None
 
 
 @st.cache_resource
 def _get_worker():
-    logging.info("[_get_worker] Creating cached _VoiceWorker singleton...")
-    worker = _VoiceWorker(model_path="hey_cookbook.onnx", device=4)
-    worker.start()
-    return worker
+    logging.debug("Creating cached _VoiceWorker singleton...")
+    return _VoiceWorker(model_path="hey_cookbook.onnx", device=None, output_file="command.wav")
 
 
 def start(ui_container=None):
-    """Call this from main.py to start passive listening and render status."""
+    """Call this from main.py to start or resume passive listening in the background."""
     worker = _get_worker()
-    target = ui_container if ui_container is not None else st
-
-    @st.fragment(run_every="0.5s")
-    def _voice_status_ui():
-        with worker.lock:
-            status = worker.status
-            command = worker.last_command
-
-        with target:
-            st.caption(f"🎙️ **Voice Assistant:** {status}")
-            if command:
-                st.info(f"**Last Voice Command:** {command}")
-
-    _voice_status_ui()
+    worker.start()
 
 
-def get_latest_command():
+def stop():
+    """Call this from main.py to stop passive listening and release the microphone."""
     worker = _get_worker()
-    with worker.lock:
-        cmd = worker.last_command
-        worker.last_command = ""
-    return cmd
+    worker.stop()
