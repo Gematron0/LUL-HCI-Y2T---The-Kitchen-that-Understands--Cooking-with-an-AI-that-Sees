@@ -16,9 +16,6 @@ def back_button():
     if st.session_state.step>1:
      st.session_state.step-=1
      st.rerun()
-    else:
-        st.write("Can't go any further")
-
 
 if st.session_state.step == 1:
     st.title("Voice Assistant AI Cooker")
@@ -33,8 +30,18 @@ elif st.session_state.step == 2:
     with st.form(key="User_info_form"):
      name= st.text_input("Please enter your name (No need for real one)", value=st.session_state.info.get("name",""))
      allergies = st.multiselect("Do you have any allergies?",options=["Peanuts", "Milk", "Eggs", "Gluten", "Soy"], default=st.session_state.info.get("allergies", []))
-     if st.form_submit_button():
-        next_page()
+
+     equipment= st.multiselect("What equipment do you have?",options=["Basics only (Stovepot, 1 pot, 1 knife, 1 pan, cutting board)"
+     , "Spatula", "Blender", "air frier", "oven"], default=st.session_state.info.get("equipment", []))
+
+     if st.form_submit_button("Submit"):
+        if not name.strip() or not allergies or not equipment:
+             st.warning("Please fill out all required fields")
+        else:
+            st.session_state.info["name"]=name
+            st.session_state.info["allergies"]=allergies
+            st.session_state.info["equipment"]=equipment
+            next_page()
 
 elif st.session_state.step ==3:
     st.write("Page2")
