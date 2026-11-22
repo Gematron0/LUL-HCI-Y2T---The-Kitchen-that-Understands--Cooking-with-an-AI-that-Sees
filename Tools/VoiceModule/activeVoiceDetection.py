@@ -8,6 +8,7 @@ import numpy as np
 import sounddevice as sd
 
 import Tools.speechToText as speechToText
+import Tools.VoiceModule.quickSearch as quickSearch
 
 
 def _record_file(
@@ -105,6 +106,8 @@ def _cookUnderstandProcess(worker, **kwargs):
     logging.info(f"Recognized text: '{text}'")
 
     # 3. use the small LLM with the text 
+    output = quickSearch.run(text)
+    print(output)
 
     # 4. use the big LLM if needed
 
