@@ -14,7 +14,8 @@ import Tools.ingredientScanner as ingredientScanner
 import Tools.downlodeSubPrograms as downlodeSubPrograms
 import Tools.getAllItems as getAllItems
 import Tools.speechToText as speechToText
-import Tools.passiveVoiceDetection as passiveVoiceDetection
+import Tools.VoiceModule.passiveVoiceDetection as passiveVoiceDetection
+import Tools.VoiceModule.activeVoiceDetection as activeVoiceDetection
 
 
 def main():
@@ -37,7 +38,8 @@ def main():
     # logging.warning(f"{AllRecipes[RecipeKeys["test3"]].Get_step(1).getStepTitle()}")
 
     # code function that you need below hear
-    passiveVoiceDetection.start(AppUi)
+    # activeVoiceDetection.start()
+    passiveVoiceDetection.start()
 
 
 
