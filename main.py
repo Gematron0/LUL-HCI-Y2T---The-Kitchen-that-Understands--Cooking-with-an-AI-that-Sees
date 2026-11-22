@@ -5,6 +5,7 @@ import time
 import streamlit as st
 import sys
 import speech_recognition as sr
+import speech_recognition as sr
 
 # file imports
 import filesInitialise
@@ -14,6 +15,8 @@ import Tools.ingredientScanner as ingredientScanner
 import Tools.downlodeSubPrograms as downlodeSubPrograms
 import Tools.getAllItems as getAllItems
 import Tools.speechToText as speechToText
+import Tools.VoiceModule.passiveVoiceDetection as passiveVoiceDetection
+import Tools.VoiceModule.activeVoiceDetection as activeVoiceDetection
 import Tools.textToSpeech as textToSpeech
 import Tools.passiveVoiceDetection as passiveVoiceDetection
 
@@ -46,7 +49,7 @@ if __name__ == "__main__":
     
     # Configure logging
     logging.basicConfig(
-        level=logging.INFO,
+        level=logging.DEBUG,
         format='[%(levelname)s] [%(asctime)s] [%(filename)s | %(funcName)s()] %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )

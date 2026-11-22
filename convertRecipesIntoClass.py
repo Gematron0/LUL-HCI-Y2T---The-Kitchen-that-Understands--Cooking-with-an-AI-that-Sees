@@ -8,6 +8,8 @@ import sys
 
 import recipesClass
 
+AllRecipes = []
+
 def ConvertRecipesIntoClass(AppUi):
     """
     This function converts all recipes into a class format for easier management and manipulation.
@@ -34,9 +36,10 @@ def ConvertRecipesIntoClass(AppUi):
     logging.debug(f"Total number of recipes: {NumberOfRecipes}")
 
     RecipeKeys = {}
+    global AllRecipes
+    AllRecipes = []
 
     # going thru all the recipes
-    AllRecipes = []
     for index, RecipeID in enumerate(RecipeIDs):
 
         # update the apps progress bar
@@ -121,3 +124,6 @@ def ConvertRecipesIntoClass(AppUi):
     logging.info(f"Finished converting recipes")
 
     return AllRecipes, RecipeKeys
+
+def get_recipes():
+    return AllRecipes
