@@ -10,6 +10,8 @@ import sounddevice as sd
 import Tools.speechToText as speechToText
 import Tools.VoiceModule.quickSearch as quickSearch
 
+_latest_result = None
+
 
 def _record_file(
     output_file="command.wav",
@@ -102,18 +104,28 @@ def _cookUnderstandProcess(worker, **kwargs):
     saved_file = _record_file(**kwargs)
 
     # 2. check for text 
-    text = speechToText.SpeechToText(saved_file)
-    logging.info(f"Recognized text: '{text}'")
+    sentence = speechToText.SpeechToText(saved_file)
+    logging.info(f"Recognized text: '{sentence}'")
 
     # 3. use the small LLM with the text 
-    output = quickSearch.run(text)
-    print(output)
+    searchType = quickSearch.run(sentence)
 
-    # 4. use the big LLM if needed
+    # 4. if the output is known, be able to process the key information of it
+    returnValue = quickSearch.infoExtraction(searchType, sentence)
 
-    # 5. make a mp3 file of the output
+    logging.info(f"Found return values: {returnValue}")
 
-    # 6. play the file
+    if returnValue != None:
+        worker.result = returnValue
+        global _latest_result
+        _latest_result = returnValue
+        return
+
+    # 5. use the big LLM if needed
+
+    # 6. make a mp3 file of the output
+
+    # 7. play the file
 
 
 def start(**kwargs):
@@ -134,3 +146,9 @@ def setVoiceCheckRequirements(intents: list[str]):
     global _voice_check_intents
     _voice_check_intents = list(intents)
     quickSearch.set_intents(_voice_check_intents)
+
+def getLatestResult():
+    global _latest_result
+    temp = _latest_result
+    _latest_result = None
+    return temp
