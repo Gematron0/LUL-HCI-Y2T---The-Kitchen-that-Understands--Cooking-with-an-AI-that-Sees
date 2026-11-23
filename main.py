@@ -43,6 +43,13 @@ def main():
     # code function that you need below hear
     passiveVoiceDetection.start(AppUi)
 
+    time.sleep(20)
+
+    passiveVoiceDetection.stop()
+
+    logging.error("PROGTRA ENDDED MAN")
+    st.stop()
+
 
 
 if __name__ == "__main__":
@@ -54,4 +61,10 @@ if __name__ == "__main__":
         datefmt='%Y-%m-%d %H:%M:%S'
     )
     # call the main function
+<<<<<<< HEAD
     main()
+=======
+    main()
+
+
+>>>>>>> ffeb976 (Signed-off-by: Gematron0 <jonas2358@leipzigis.com>)
