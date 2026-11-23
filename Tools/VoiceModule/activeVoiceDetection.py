@@ -157,4 +157,4 @@ def getLatestResult():
     global _latest_input
     temp2 = _latest_input
     _latest_result,_latest_input = None, None
-    return temp, temp2
+    return temp2, temp
