@@ -20,6 +20,18 @@ def _get_classifier():
         _classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
     return _classifier
 
+
+# downloding the modle 
+DEFAULT_INTENTS = ["allergens", "cooking equipment", "idk", "customer support"]
+_classifier = None
+
+def _get_classifier():
+    """Lazy-loads the model once so it doesn't reload on every run()."""
+    global _classifier
+    if _classifier is None:
+        _classifier = pipeline("zero-shot-classification", model="facebook/bart-large-mnli")
+    return _classifier
+
 def downlodeQuickUnderstand():
     _get_classifier()
 

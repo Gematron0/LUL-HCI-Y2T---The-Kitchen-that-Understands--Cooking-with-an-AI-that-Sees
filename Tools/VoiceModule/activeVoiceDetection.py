@@ -128,3 +128,9 @@ def start(**kwargs):
     
     worker.start()
     return worker
+
+def setVoiceCheckRequirements(intents: list[str]):
+    """Modifies the intents checked during _cookUnderstandProcess."""
+    global _voice_check_intents
+    _voice_check_intents = list(intents)
+    quickSearch.set_intents(_voice_check_intents)

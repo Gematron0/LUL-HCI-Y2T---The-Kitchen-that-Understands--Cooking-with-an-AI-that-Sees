@@ -41,14 +41,6 @@ def main():
     # logging.warning(f"{AllRecipes[RecipeKeys["test3"]].Get_step(1).getStepTitle()}")
 
     # code function that you need below hear
-    passiveVoiceDetection.start(AppUi)
-
-    time.sleep(20)
-
-    passiveVoiceDetection.stop()
-
-    logging.error("PROGTRA ENDDED MAN")
-    st.stop()
 
 
 
