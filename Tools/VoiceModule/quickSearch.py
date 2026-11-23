@@ -52,14 +52,14 @@ def run(sentence: str) -> str | None:
 
 # info extraction
 def infoExtraction(type, sentence: str):
-    
+
     CleanSentence = f" {re.sub(r'[^\w\s]', '', sentence.lower())} "
 
     match type:
         case None:
             return None
 
-        case "List of Allergens":
+        case "List of allergens":
             FoundItems = set()
             for item in (x.lower() for x in getAllItems.getAllAllergen(convertRecipesIntoClass.get_recipes())):
                 logging.debug(f"comparing {item} with {CleanSentence}")

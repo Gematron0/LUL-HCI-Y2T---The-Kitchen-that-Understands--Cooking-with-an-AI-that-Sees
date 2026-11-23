@@ -11,6 +11,7 @@ import Tools.speechToText as speechToText
 import Tools.VoiceModule.quickSearch as quickSearch
 
 _latest_result = None
+_latest_input = None
 
 
 def _record_file(
@@ -109,6 +110,7 @@ def _cookUnderstandProcess(worker, **kwargs):
 
     # 3. use the small LLM with the text 
     searchType = quickSearch.run(sentence)
+    logging.debug(f"search type: {searchType}")
 
     # 4. if the output is known, be able to process the key information of it
     returnValue = quickSearch.infoExtraction(searchType, sentence)
@@ -119,6 +121,8 @@ def _cookUnderstandProcess(worker, **kwargs):
         worker.result = returnValue
         global _latest_result
         _latest_result = returnValue
+        global _latest_input
+        _latest_input = searchType
         return
 
     # 5. use the big LLM if needed
@@ -150,5 +154,7 @@ def setVoiceCheckRequirements(intents: list[str]):
 def getLatestResult():
     global _latest_result
     temp = _latest_result
-    _latest_result = None
-    return temp
+    global _latest_input
+    temp2 = _latest_input
+    _latest_result,_latest_input = None, None
+    return temp, temp2

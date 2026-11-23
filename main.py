@@ -41,7 +41,6 @@ def main():
     # activeVoiceDetection.start()
 
 
-
 if __name__ == "__main__":
     
     # Configure logging
