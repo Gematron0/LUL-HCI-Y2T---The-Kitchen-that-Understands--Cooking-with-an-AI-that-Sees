@@ -39,14 +39,9 @@ def main():
 
     # code function that you need below hear
     # activeVoiceDetection.start()
+
+    activeVoiceDetection.setVoiceCheckRequirements(["Allergens", "Airplanes"])
     passiveVoiceDetection.start()
-
-    time.sleep(20)
-
-    passiveVoiceDetection.stop()
-
-    logging.error("PROGTRA ENDDED MAN")
-    st.stop()
 
 
 
