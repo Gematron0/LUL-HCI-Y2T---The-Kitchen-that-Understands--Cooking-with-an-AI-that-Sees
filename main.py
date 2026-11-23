@@ -52,10 +52,4 @@ if __name__ == "__main__":
         datefmt='%Y-%m-%d %H:%M:%S'
     )
     # call the main function
-<<<<<<< HEAD
     main()
-=======
-    main()
-
-
->>>>>>> ffeb976 (Signed-off-by: Gematron0 <jonas2358@leipzigis.com>)
