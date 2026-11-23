@@ -40,9 +40,6 @@ def main():
     # code function that you need below hear
     # activeVoiceDetection.start()
 
-    activeVoiceDetection.setVoiceCheckRequirements(["Allergens", "Airplanes"])
-    passiveVoiceDetection.start()
-
 
 
 if __name__ == "__main__":

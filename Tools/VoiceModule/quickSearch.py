@@ -3,6 +3,10 @@
 from transformers import pipeline
 import logging
 import time
+import re
+
+import Tools.getAllItems as getAllItems
+import convertRecipesIntoClass
 
 
 # downloding the modle 
@@ -45,3 +49,22 @@ def run(sentence: str) -> str | None:
         return None
     
     return str(top_intent)
+
+# info extraction
+def infoExtraction(type, sentence: str):
+    
+    CleanSentence = f" {re.sub(r'[^\w\s]', '', sentence.lower())} "
+
+    match type:
+        case None:
+            return None
+
+        case "List of Allergens":
+            FoundItems = set()
+            for item in (x.lower() for x in getAllItems.getAllAllergen(convertRecipesIntoClass.get_recipes())):
+                logging.debug(f"comparing {item} with {CleanSentence}")
+                if f" {item} " in CleanSentence:
+                    FoundItems.add(item)
+
+            return FoundItems
+
