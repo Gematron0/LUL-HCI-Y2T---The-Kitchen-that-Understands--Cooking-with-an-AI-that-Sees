@@ -25,4 +25,4 @@ def run(sentence: str) -> str | None:
     if confidence >= 40:
         return None
     
-    return top_intent
+    return str(top_intent)
