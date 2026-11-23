@@ -43,7 +43,6 @@ def main():
     # code function that you need below hear
 
 
-
 if __name__ == "__main__":
     
     # Configure logging
