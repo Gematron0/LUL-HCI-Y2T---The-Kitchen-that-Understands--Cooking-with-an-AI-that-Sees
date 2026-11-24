@@ -73,5 +73,8 @@ def infoExtraction(type, sentence: str):
                 if f" {item} " in CleanSentence:
                     FoundItems.add(item)
 
-            return FoundItems
+                return FoundItems
+
+        case "Go back a step":
+            return ""
 
