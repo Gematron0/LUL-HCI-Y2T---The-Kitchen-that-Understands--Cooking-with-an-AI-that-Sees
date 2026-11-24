@@ -82,8 +82,8 @@ polars==2.1.0
 polars-runtime-32==2.1.0
 protobuf==7.36.2
 psutil==7.2.2
+pvrecorder==1.2.7
 pyarrow==26.0.0
-PyAudio==0.2.14
 pycparser==3.12
 pydantic==2.14.4
 pydantic_core==2.50.5
@@ -134,5 +134,5 @@ uvicorn==0.54.0
 vosk==0.3.45
 watchdog==6.0.0
 wcwidth==0.9.4
-webrtcvad==2.0.10
+webrtcvad-wheels==2.0.14.post1
 websockets==17.4
