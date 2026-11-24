@@ -75,7 +75,9 @@ opencv-python==5.0.0.93
 openwakeword==0.4.0
 packaging==26.3
 pandas==3.1.0
+pathvalidate==3.3.1
 pillow==13.0.0
+piper-tts==1.8.0
 polars==2.1.0
 polars-runtime-32==2.1.0
 protobuf==7.36.2
@@ -134,7 +136,3 @@ watchdog==6.0.0
 wcwidth==0.9.4
 webrtcvad==2.0.10
 websockets==17.4
-
-# text to speech
-pathvalidate==3.3.1
-piper-tts==1.8.0
