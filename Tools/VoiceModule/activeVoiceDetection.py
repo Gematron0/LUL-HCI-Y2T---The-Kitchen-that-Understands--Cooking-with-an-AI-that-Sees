@@ -10,8 +10,8 @@ import sounddevice as sd
 import Tools.speechToText as speechToText
 import Tools.VoiceModule.quickSearch as quickSearch
 
-_latest_result = None
-_latest_input = None
+LatestResult = []
+LatestInput = []
 
 
 def _record_file(
@@ -118,11 +118,10 @@ def _cookUnderstandProcess(worker, **kwargs):
     logging.info(f"Found return values: {returnValue}")
 
     if returnValue != None:
-        worker.result = returnValue
-        global _latest_result
-        _latest_result = returnValue
-        global _latest_input
-        _latest_input = searchType
+        global LatestResult
+        LatestResult.append(returnValue)
+        global LatestInput
+        LatestInput.append(searchType)
         return
 
     # 5. use the big LLM if needed
@@ -151,10 +150,22 @@ def setVoiceCheckRequirements(intents: list[str]):
     _voice_check_intents = list(intents)
     quickSearch.set_intents(_voice_check_intents)
 
-def getLatestResult():
-    global _latest_result
-    temp = _latest_result
-    global _latest_input
-    temp2 = _latest_input
-    _latest_result,_latest_input = None, None
-    return temp2, temp
+def getNextResult() -> tuple[str|None, str|None]:
+    global LatestResult
+    global LatestInput
+
+    if areThereResults() == False:
+        return (None, None)
+
+    Result = LatestResult.pop(0)
+    Input = LatestInput.pop(0)
+
+    return Result, Input
+
+def areThereResults() -> bool:
+    global LatestResult
+    global LatestInput
+
+    if len(LatestInput) == 0 and len(LatestInput) == 0:
+        return False
+    return True
