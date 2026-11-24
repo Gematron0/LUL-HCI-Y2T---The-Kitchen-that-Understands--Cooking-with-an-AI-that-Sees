@@ -5,7 +5,6 @@ import time
 import streamlit as st
 import sys
 import speech_recognition as sr
-import speech_recognition as sr
 
 # file imports
 import filesInitialise
