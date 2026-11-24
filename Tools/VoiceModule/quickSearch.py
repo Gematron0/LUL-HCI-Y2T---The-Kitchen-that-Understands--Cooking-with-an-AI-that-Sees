@@ -22,7 +22,6 @@ def _get_classifier():
 
 
 # downloding the modle 
-DEFAULT_INTENTS = ["allergens", "cooking equipment", "idk", "customer support"]
 _classifier = None
 
 def _get_classifier():
@@ -45,21 +44,28 @@ def set_intents(intents: list[str]):
 def run(sentence: str) -> str | None:
     logging.info("started calculating what the person wants")
     startTime = time.time()
-    
-    classifier = _get_classifier()
-    result = classifier(sentence, SCANNED_INTENTS)
 
-    top_intent = result["labels"][0]
-    confidence = result["scores"][0]
-
-    logging.info(f"Intent: {top_intent} ({confidence:.2%})")
-
+    global SCANNED_INTENTS
+    try:
+        SCANNED_INTENTS # type: ignore
+    except NameError:
+        logging.error("Scanned interests is not defined, therefore there can be no query, VOIDED")
+        return ""
     if len(SCANNED_INTENTS) == 1:
         return str(SCANNED_INTENTS[0])
 
+    classifier = _get_classifier()
+    result = classifier(sentence, SCANNED_INTENTS)
+    top_intent = result["labels"][0] # type: ignore
+    confidence = result["scores"][0] # type: ignore
+
+    logging.info(f"Intent: {top_intent} ({confidence:.2%})")
+
     if confidence < .4:
         return None
-    
+
+    logging.debug(f"passes minimum conference score")
+    logging.debug(f"time: {startTime-time.time()}")
     return str(top_intent)
 
 # info extraction

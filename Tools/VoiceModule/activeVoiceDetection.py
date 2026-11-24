@@ -134,12 +134,12 @@ def _cookUnderstandProcess(worker, **kwargs):
 def start(**kwargs):
     """Starts _cookUnderstandProcess in the background and immediately returns."""
     worker = threading.Thread(daemon=True)
-    worker.command = None  
+    worker.command = None  # type: ignore
     
     # Point the thread directly at _cookUnderstandProcess
-    worker._target = _cookUnderstandProcess
-    worker._args = (worker,)
-    worker._kwargs = kwargs
+    worker._target = _cookUnderstandProcess # type: ignore
+    worker._args = (worker,) # type: ignore
+    worker._kwargs = kwargs # type: ignore
     
     worker.start()
     return worker
