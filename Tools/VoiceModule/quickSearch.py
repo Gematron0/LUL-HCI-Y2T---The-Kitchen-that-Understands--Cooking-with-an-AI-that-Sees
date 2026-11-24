@@ -49,12 +49,7 @@ def run(sentence: str) -> str | None:
     confidence = result["scores"][0] # type: ignore
 
     logging.info(f"Intent: {top_intent} ({confidence:.2%})")
-
-    if confidence < .4:
-        return None
-
-    logging.debug(f"passes minimum conference score")
-    logging.debug(f"time: {startTime-time.time()}")
+    logging.debug(f"time: {time.time()-startTime}")
     return str(top_intent)
 
 # info extraction
