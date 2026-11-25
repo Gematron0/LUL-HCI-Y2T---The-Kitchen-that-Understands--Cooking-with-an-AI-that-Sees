@@ -4,6 +4,7 @@ import logging
 import shutil
 import sys
 
+
 def DeleteAStep(RecipeID, StepLocation):
     """
     Delete a step from an existing recipe.
@@ -22,7 +23,9 @@ def DeleteAStep(RecipeID, StepLocation):
         raise ValueError("RecipeID must be an integer.")
 
     if not isinstance(StepLocation, int):
-        logging.error(f"Invalid input for StepLocation: {StepLocation}. Expected an integer.")
+        logging.error(
+            f"Invalid input for StepLocation: {StepLocation}. Expected an integer."
+        )
         raise ValueError("StepLocation must be an integer.")
 
     # entering the recipe folder
@@ -40,15 +43,23 @@ def DeleteAStep(RecipeID, StepLocation):
     # checking if the step file exists
     StepFilePath = Path.cwd() / f"Step_{StepLocation}.json"
     if not StepFilePath.is_file():
-        logging.error(f"Step file not found for StepLocation: {StepLocation} in RecipeID: {RecipeID}")
-        raise FileNotFoundError(f"Step file not found for StepLocation: {StepLocation} in RecipeID: {RecipeID}")
+        logging.error(
+            f"Step file not found for StepLocation: {StepLocation} in RecipeID: {RecipeID}"
+        )
+        raise FileNotFoundError(
+            f"Step file not found for StepLocation: {StepLocation} in RecipeID: {RecipeID}"
+        )
 
     # deleting the step file
     StepFilePath.unlink()
     logging.info(f"Successfully deleted step {StepLocation} from recipe {RecipeID}")
 
     # renaming the subsequent step files to fill the gap
-    ExistingSteps = [file.stem for file in Path.cwd().glob("*.json") if file.is_file() and file.stem != "RecipeInfo" and file.stem != "Ingredients"]
+    ExistingSteps = [
+        file.stem
+        for file in Path.cwd().glob("*.json")
+        if file.is_file() and file.stem != "RecipeInfo" and file.stem != "Ingredients"
+    ]
     ExistingStepsFixed = []
     for step in ExistingSteps:
         ExistingStepsFixed.append(int(step.split("Step_")[1]))
@@ -61,6 +72,8 @@ def DeleteAStep(RecipeID, StepLocation):
             os.rename(OldFilePath, NewFilePath)
             logging.debug(f"Renamed {OldFilePath} to {NewFilePath}")
 
-    logging.info(f"Successfully deleted step {StepLocation} and updated subsequent steps in recipe {RecipeID}")
+    logging.info(
+        f"Successfully deleted step {StepLocation} and updated subsequent steps in recipe {RecipeID}"
+    )
 
     sys.exit(0)

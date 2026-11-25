@@ -10,6 +10,7 @@ import recipesClass
 
 AllRecipes = []
 
+
 def ConvertRecipesIntoClass(AppUi):
     """
     This function converts all recipes into a class format for easier management and manipulation.
@@ -43,8 +44,10 @@ def ConvertRecipesIntoClass(AppUi):
     for index, RecipeID in enumerate(RecipeIDs):
 
         # update the apps progress bar
-        percentage = round((index/NumberOfRecipes), 2)
-        AppProgressBar.progress(percentage, text=f"Loading Recipes... ({index}/{NumberOfRecipes})")
+        percentage = round((index / NumberOfRecipes), 2)
+        AppProgressBar.progress(
+            percentage, text=f"Loading Recipes... ({index}/{NumberOfRecipes})"
+        )
 
         logging.debug(f"Checking recipe {RecipeID}")
 
@@ -68,11 +71,30 @@ def ConvertRecipesIntoClass(AppUi):
             logging.info(f"recipe {RecipeName} has been ignored and skipped")
             continue
 
-        Recipe = recipesClass.Recipes(len(AllRecipes), RecipeName, ImagePath, Servings, 
-                                      ImageCenter[0], ImageCenter[1], TimeInDays, TimeInHours, TimeInMinuets)
+        Recipe = recipesClass.Recipes(
+            len(AllRecipes),
+            RecipeName,
+            ImagePath,
+            Servings,
+            ImageCenter[0],
+            ImageCenter[1],
+            TimeInDays,
+            TimeInHours,
+            TimeInMinuets,
+        )
 
         # adding all of the steps
-        json_steps = [file.name for file in RecipesDir.rglob("*.json") if file.name not in ["RecipeInfo.json","Ingredients.json","Equipment.json","Allergen.json"]]
+        json_steps = [
+            file.name
+            for file in RecipesDir.rglob("*.json")
+            if file.name
+            not in [
+                "RecipeInfo.json",
+                "Ingredients.json",
+                "Equipment.json",
+                "Allergen.json",
+            ]
+        ]
         json_steps.sort()
         logging.debug(f"All steps found: {json_steps}")
 
@@ -87,7 +109,14 @@ def ConvertRecipesIntoClass(AppUi):
             StepImage = data.get("ImagePath")
             StepImageCoordinates = data.get("ImageCenter")
 
-            Recipe.Add_Step(i, StepTitle, StepInstruction, StepImage, StepImageCoordinates[0], StepImageCoordinates[1])
+            Recipe.Add_Step(
+                i,
+                StepTitle,
+                StepInstruction,
+                StepImage,
+                StepImageCoordinates[0],
+                StepImageCoordinates[1],
+            )
 
         # adding all of the ingredients
         RecipeFilePath = RecipesDir / "Ingredients.json"
@@ -113,10 +142,9 @@ def ConvertRecipesIntoClass(AppUi):
         for item in data:
             Recipe.add_Allergies(item)
 
-
         # adding it to the total of all recipes
         AllRecipes.append(Recipe)
-        RecipeKeys[RecipeName] = len(AllRecipes)-1
+        RecipeKeys[RecipeName] = len(AllRecipes) - 1
 
     AppProgressBar.empty()
     ClassConversionUI.empty()
@@ -124,6 +152,7 @@ def ConvertRecipesIntoClass(AppUi):
     logging.info(f"Finished converting recipes")
 
     return AllRecipes, RecipeKeys
+
 
 def get_recipes():
     return AllRecipes

@@ -6,6 +6,7 @@ import sys
 
 import RecepyManigment.recipeJSONFileDefaults as JSONRecipeDefaults
 
+
 def AddAStep(RecipeID, StepLocation):
     """
     Add a step to an existing recipe.
@@ -24,7 +25,9 @@ def AddAStep(RecipeID, StepLocation):
         raise ValueError("RecipeID must be an integer.")
 
     if not isinstance(StepLocation, (int, str)):
-        logging.error(f"Invalid input for StepLocation: {StepLocation}. Expected an integer or '++'.")
+        logging.error(
+            f"Invalid input for StepLocation: {StepLocation}. Expected an integer or '++'."
+        )
         raise ValueError("StepLocation must be an integer or '++'.")
 
     # entering the recipe folder
@@ -45,7 +48,11 @@ def AddAStep(RecipeID, StepLocation):
     ExistingSteps.remove("RecipeInfo")
     logging.debug(f"Existing steps found: {ExistingSteps}")
 
-    ExistingSteps = [file.stem for file in Path.cwd().glob("*.json") if file.is_file() and file.stem != "RecipeInfo" and file.stem != "Ingredients"]
+    ExistingSteps = [
+        file.stem
+        for file in Path.cwd().glob("*.json")
+        if file.is_file() and file.stem != "RecipeInfo" and file.stem != "Ingredients"
+    ]
     ExistingStepsFixed = []
     for step in ExistingSteps:
         ExistingStepsFixed.append(int(step.split("Step_")[1]))
@@ -61,7 +68,7 @@ def AddAStep(RecipeID, StepLocation):
         StepInfo = JSONRecipeDefaults.getStepInfoDefault(StepLocation)
         StepFilePath = Path.cwd() / f"Step_{StepLocation}.json"
 
-        with open(StepFilePath, 'w') as StepFile:
+        with open(StepFilePath, "w") as StepFile:
             json.dump(StepInfo, StepFile, indent=4)
         logging.debug(f"Wrote step info to file: {StepFilePath}")
 
@@ -69,9 +76,13 @@ def AddAStep(RecipeID, StepLocation):
     else:
 
         if max(ExistingSteps) < int(StepLocation):
-            logging.error(f"Step location {StepLocation} is greater than the maximum existing step {max(ExistingSteps)}.")
-            raise ValueError(f"Step location {StepLocation} is greater than the maximum existing step {max(ExistingSteps)}.")
-        
+            logging.error(
+                f"Step location {StepLocation} is greater than the maximum existing step {max(ExistingSteps)}."
+            )
+            raise ValueError(
+                f"Step location {StepLocation} is greater than the maximum existing step {max(ExistingSteps)}."
+            )
+
         logging.debug(f"Step location {StepLocation} exists. Shifting steps up by 1.")
 
         for step in sorted(ExistingSteps, reverse=True):
@@ -84,7 +95,7 @@ def AddAStep(RecipeID, StepLocation):
         StepInfo = JSONRecipeDefaults.getStepInfoDefault(StepLocation)
         StepFilePath = Path.cwd() / f"Step_{StepLocation}.json"
 
-        with open(StepFilePath, 'w') as StepFile:
+        with open(StepFilePath, "w") as StepFile:
             json.dump(StepInfo, StepFile, indent=4)
         logging.debug(f"Wrote step info to file: {StepFilePath}")
 

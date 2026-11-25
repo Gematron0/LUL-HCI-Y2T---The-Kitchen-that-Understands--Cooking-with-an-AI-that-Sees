@@ -9,11 +9,13 @@ import logging
 
 Voice = None
 
+
 def downlodeTextToSpeechModel() -> None:
     global Voice
     Path("voices").mkdir(exist_ok=True)
     download_voice("en_US-lessac-medium", Path("voices"))
     Voice = PiperVoice.load("voices/en_US-lessac-medium.onnx")
+
 
 def TextToSpeech(Text, AudioPath="speech.wav") -> str:
     if Voice is None:
@@ -24,6 +26,7 @@ def TextToSpeech(Text, AudioPath="speech.wav") -> str:
         WavFile.setframerate(Voice.config.sample_rate)
         Voice.synthesize_wav(Text, WavFile, set_wav_format=False)
     return AudioPath
+
 
 def PlayAudio(file_path: str = "speech.wav", mime_type: str = "audio/wav"):
     logging.info(f"attempting to play audio: {file_path}")

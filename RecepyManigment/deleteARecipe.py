@@ -6,6 +6,7 @@ import logging
 import shutil
 import sys
 
+
 def DeleteRecipe(RecipeID):
     """
     Delete an existing recipe with the given ID.
@@ -48,19 +49,21 @@ def DeleteRecipe(RecipeID):
             if folder_num > RecipeID:
                 folders_to_rename.append((folder_num, item))
 
-    # Sort the folders to rename in ascending order based to avoid overwriting 
+    # Sort the folders to rename in ascending order based to avoid overwriting
     folders_to_rename.sort(key=lambda x: x[0])
 
     # Rename them safely from the highest number down
     for folder_num, old_path in folders_to_rename:
         new_folder_name = str(folder_num - 1)
         new_path = old_path.with_name(new_folder_name)
-        
+
         try:
             old_path.rename(new_path)
             logging.debug(f"Renamed folder {old_path.name} to {new_folder_name}")
         except Exception as e:
             logging.error(f"Failed to rename {old_path.name} to {new_folder_name}: {e}")
 
-    logging.info(f"Successfully renamed subsequent recipe folders after deleting recipe ID: {RecipeID}")
+    logging.info(
+        f"Successfully renamed subsequent recipe folders after deleting recipe ID: {RecipeID}"
+    )
     sys.exit(0)

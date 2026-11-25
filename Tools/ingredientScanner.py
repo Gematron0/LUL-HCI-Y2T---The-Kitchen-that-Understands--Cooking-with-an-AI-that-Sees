@@ -5,6 +5,7 @@ from ultralytics.engine.results import Results as YOLOResults
 import logging
 import time
 
+
 def downlodeIngredientScannerModel() -> None:
     Start = time.time()
     logging.info(f"Downloading yolov8x-worldv2.pt")
@@ -17,13 +18,15 @@ def ImageToIngredientScanner(ImagePath, TargetIngredients) -> set:
     logging.info(f"Started Image to ingredient scanning")
     StartTime = time.time()
 
-    try: 
+    try:
         TargetIngredients = list(TargetIngredients)
     except:
         pass
 
     if not isinstance(TargetIngredients, list):
-        logging.error(f"TargetIngredients must be a list; got: {type(TargetIngredients)}")
+        logging.error(
+            f"TargetIngredients must be a list; got: {type(TargetIngredients)}"
+        )
         raise ValueError("TargetIngredients must be an list.")
 
     if not isinstance(ImagePath, str):
@@ -35,7 +38,7 @@ def ImageToIngredientScanner(ImagePath, TargetIngredients) -> set:
     set_classes = model.set_classes
     if set_classes is None:
         raise RuntimeError("The loaded model does not support setting classes.")
-    
+
     set_classes(TargetIngredients)
 
     Predictions = model.predict(ImagePath, conf=0.2, iou=0.5, agnostic_nms=False)
