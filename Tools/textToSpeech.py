@@ -1,6 +1,6 @@
 from piper import PiperVoice
+from huggingface_hub import hf_hub_download
 from pathlib import Path
-import urllib.request
 import wave
 import base64
 import streamlit as st
@@ -14,28 +14,19 @@ def _load_cached_voice() -> PiperVoice:
     voices_dir = Path("voices")
     voices_dir.mkdir(exist_ok=True)
 
-    model_path = voices_dir / "en_US-lessac-medium.onnx"
-    config_path = voices_dir / "en_US-lessac-medium.onnx.json"
-
-    # Remove empty or corrupted files from previous failed downloads
-    if config_path.exists() and config_path.stat().st_size == 0:
-        config_path.unlink()
-    if model_path.exists() and model_path.stat().st_size == 0:
-        model_path.unlink()
-
-    # Full path to the voice model on Hugging Face
-    base_url = (
-        "https://huggingface.co"
-        "en/en_US/lessac/medium"
+    # Downloads directly from Hugging Face without needing manual URLs
+    model_path = hf_hub_download(
+        repo_id="rhasspy/piper-voices",
+        filename="en/en_US/lessac/medium/en_US-lessac-medium.onnx",
+        local_dir=voices_dir,
     )
-    if not model_path.exists():
-        logging.info("Downloading Piper ONNX model...")
-        urllib.request.urlretrieve(f"{base_url}/en_US-lessac-medium.onnx", model_path)
-    if not config_path.exists():
-        logging.info("Downloading Piper JSON config...")
-        urllib.request.urlretrieve(f"{base_url}/en_US-lessac-medium.onnx.json", config_path)
+    config_path = hf_hub_download(
+        repo_id="rhasspy/piper-voices",
+        filename="en/en_US/lessac/medium/en_US-lessac-medium.onnx.json",
+        local_dir=voices_dir,
+    )
 
-    return PiperVoice.load(str(model_path), config_path=str(config_path))
+    return PiperVoice.load(model_path, config_path=config_path)
 
 
 def downlodeTextToSpeechModel() -> None:
