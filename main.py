@@ -49,5 +49,9 @@ if __name__ == "__main__":
         format="[%(levelname)s] [%(asctime)s] [%(filename)s | %(funcName)s()] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
+
+    logging.getLogger("aiortc").setLevel(logging.WARNING)
+    logging.getLogger("aioice").setLevel(logging.WARNING)
+    logging.getLogger("streamlit_webrtc").setLevel(logging.WARNING)
     # call the main function
     main()

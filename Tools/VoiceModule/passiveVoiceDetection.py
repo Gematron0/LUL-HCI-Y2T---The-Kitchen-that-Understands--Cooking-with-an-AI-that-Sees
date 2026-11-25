@@ -1,183 +1,311 @@
-# this file contains generative AI
-
 import logging
 import os
+import queue
 import threading
 import time
 import traceback
+import av
 import numpy as np
-import sounddevice as sd
 import streamlit as st
 from openwakeword.model import Model
+from streamlit_webrtc import WebRtcMode, webrtc_streamer
 
 import Tools.VoiceModule.activeVoiceDetection as activeVoiceDetection
 
 
+
 class _VoiceWorker:
     def __init__(
-        self, model_path="hey_cookbook.onnx", device=None, output_file="command.wav"
+        self,
+        model_path="hey_cookbook.onnx",
+        output_file="command.wav",
+        threshold=0.5,
+        cooldown=3.0,
     ):
         self.model_path = model_path
         self.wake_word = os.path.splitext(os.path.basename(model_path))[0]
-        self.device = device
         self.output_file = output_file
 
-        self.status = f"Initializing '{self.wake_word.replace('_', ' ')}'..."
-        self.has_new_audio = False  # Flag to let main.py know a new recording is ready
+        self.threshold = threshold
+        self.cooldown = cooldown
+        self.last_trigger_time = 0.0
+
         self.running = False
         self.thread = None
         self.lock = threading.Lock()
-        logging.debug(f"initialized with model='{self.model_path}'")
+
+        self.web_audio_queue = queue.Queue(maxsize=100)
+        self._resample_buffer = np.array([], dtype=np.int16)
 
     def start(self):
         with self.lock:
-            if not self.running:
-                self.running = True
-                self.thread = threading.Thread(
-                    target=self._listen_loop, name="VoiceListenerThread", daemon=True
-                )
-                self.thread.start()
-                logging.debug(f"Started background thread: {self.thread.name}")
+            if self.running:
+                return
+
+            self.running = True
+            self.thread = threading.Thread(
+                target=self._listen_loop,
+                name="VoiceListenerThread",
+                daemon=True,
+            )
+            self.thread.start()
 
     def stop(self):
-        """Stops the audio stream and terminates the background listener thread."""
         with self.lock:
             if not self.running:
                 return
+
             self.running = False
             thread_to_join = self.thread
 
-        # Wait briefly outside the lock for the audio stream to finish its current 80ms chunk and close
         if (
             thread_to_join
             and thread_to_join.is_alive()
             and threading.current_thread() != thread_to_join
         ):
-            thread_to_join.join(timeout=1.0)
+            thread_to_join.join(timeout=2.0)
 
-        self._update_status("Voice detection stopped.")
-        logging.info("Stopped passive wake-word listening.")
+    def push_browser_audio(self, pcm_int16_16khz: np.ndarray):
+        self._resample_buffer = np.concatenate(
+            (self._resample_buffer, pcm_int16_16khz)
+        )
 
-    def _update_status(self, message: str):
-        with self.lock:
-            self.status = message
+        CHUNK = 1280
 
+        while len(self._resample_buffer) >= CHUNK:
+            chunk = self._resample_buffer[:CHUNK]
+            self._resample_buffer = self._resample_buffer[CHUNK:]
+
+            try:
+                self.web_audio_queue.put_nowait(chunk)
+            except queue.Full:
+                # Discard the oldest audio to keep latency low.
+                try:
+                    self.web_audio_queue.get_nowait()
+                    self.web_audio_queue.put_nowait(chunk)
+                except queue.Empty:
+                    pass
+
+    
     def _listen_loop(self):
-        logging.debug("Entered background listener thread.")
+        logging.info("Initializing OpenWakeWord...")
+
         try:
-            RATE = 16000
-            CHUNK = 1280  # 80ms per chunk
+            oww_model = Model(
+                wakeword_model_paths=[self.model_path]
+            )
 
-            oww_model = Model(wakeword_model_paths=[self.model_path])
-            logging.debug(f"Active models: {list(oww_model.models.keys())}")
+            logging.info(
+                f"MODEL LOADED: {self.model_path}"
+            )
 
-            self._update_status(
-                f"Listening for '{self.wake_word.replace('_', ' ')}'..."
+            logging.info(
+                f"MODEL KEYS: {list(oww_model.models.keys())}"
             )
 
             chunk_counter = 0
-            max_score_seen = 0.0
+            last_log_time = time.monotonic()
+            max_score = 0.0
 
             while self.running:
                 try:
-                    with sd.RawInputStream(
-                        samplerate=RATE,
-                        blocksize=CHUNK,
-                        dtype="int16",
-                        channels=1,
-                        device=self.device,
-                    ) as stream:
-                        while self.running:
-                            data, overflowed = stream.read(CHUNK)
-                            audio_array = np.frombuffer(data, dtype=np.int16)
-                            prediction = oww_model.predict(audio_array)
-                            score = max(
-                                (
-                                    v
-                                    for k, v in prediction.items()
-                                    if k.startswith(self.wake_word)
-                                ),
-                                default=0.0,
+                    audio_array = self.web_audio_queue.get(
+                        timeout=0.5
+                    )
+                except queue.Empty:
+                    continue
+
+                try:
+                    # Verify audio format.
+                    if audio_array.dtype != np.int16:
+                        logging.warning(
+                            f"Unexpected audio dtype: {audio_array.dtype}"
+                        )
+
+                    if len(audio_array) != 1280:
+                        logging.warning(
+                            f"Unexpected chunk size: {len(audio_array)}"
+                        )
+
+                    # Check microphone volume.
+                    rms = float(
+                        np.sqrt(
+                            np.mean(
+                                audio_array.astype(np.float32) ** 2
+                            )
+                        )
+                    )
+
+                    prediction = oww_model.predict(audio_array)
+
+                    # Log all predictions, not just hey_cookbook.
+                    scores = {
+                        k: float(v)
+                        for k, v in prediction.items()
+                    }
+
+                    matching_scores = [
+                        value
+                        for key, value in scores.items()
+                        if self.wake_word.lower() in key.lower()
+                    ]
+
+                    score = max(matching_scores, default=0.0)
+
+                    max_score = max(max_score, score)
+                    chunk_counter += 1
+
+                    # Log approximately once per second.
+                    now = time.monotonic()
+
+                    if now - last_log_time >= 1.0:
+                        logging.info(
+                            f"WAKE DEBUG | "
+                            f"RMS={rms:.1f} | "
+                            f"MAX_SCORE={max_score:.5f} | "
+                            f"ALL_PREDICTIONS={scores}"
+                        )
+
+                        max_score = 0.0
+                        last_log_time = now
+
+                    # Wake-word detection.
+                    if score >= self.threshold:
+                        logging.warning(
+                            f"WAKE WORD DETECTED! "
+                            f"Score={score:.5f}"
+                        )
+
+                        try:
+                            activeVoiceDetection.start()
+                        except Exception:
+                            logging.exception(
+                                "Could not start active voice detection"
                             )
 
-                            if score > max_score_seen:
-                                max_score_seen = score
+                        oww_model.reset()
 
-                            chunk_counter += 1
-                            if chunk_counter % 62 == 0:
-                                rms = float(
-                                    np.sqrt(
-                                        np.mean(audio_array.astype(np.float32) ** 2)
-                                    )
-                                )
-                                logging.debug(
-                                    f"Heartbeat | mic_rms={rms:.1f} | max_score_last_5s={max_score_seen:.4f}"
-                                )
-                                max_score_seen = 0.0
-
-                            if score > 0.5:
-                                logging.info(
-                                    f"WAKE WORD TRIGGERED (score={score:.4f}) "
-                                )
-                                activeVoiceDetection.start()
-
-                                oww_model.reset()
-                                max_score_seen = 0.0
-                                if self.running:
-                                    self._update_status(
-                                        f"Listening for '{self.wake_word.replace('_', ' ')}'..."
-                                    )
-
-                except Exception as loop_err:
-                    if not self.running:
-                        break  # Exit cleanly if stopped during an audio read
-                    logging.warning(
-                        f"Inner loop exception: {loop_err}\n{traceback.format_exc()}"
+                except Exception:
+                    logging.exception(
+                        "OpenWakeWord prediction error"
                     )
-                    self._update_status(f"Audio error: {loop_err}")
-                    time.sleep(1.0)
 
-        except Exception as fatal_err:
-            logging.error(f"FATAL thread crash: {fatal_err}\n{traceback.format_exc()}")
-            self._update_status(f"Fatal voice error: {fatal_err}")
+        except Exception:
+            logging.exception(
+                "Fatal OpenWakeWord error"
+            )
+
         finally:
             self.running = False
+            logging.info("Wake-word listener stopped.")
 
-    @staticmethod
-    def find_input_device(name_substring: str):
-        """Finds the first input device index matching the given name substring."""
-        if not name_substring:
-            return None  # Falls back to system default
-
-        for idx, dev in enumerate(sd.query_devices()):
-            if (
-                dev["max_input_channels"] > 0
-                and name_substring.lower() in dev["name"].lower()
-            ):
-                logging.debug(f"Matched audio device [{idx}]: {dev['name']}")
-                return idx
-
-        logging.warning(
-            f"Device '{name_substring}' not found. Falling back to system default."
-        )
-        return None
 
 
 @st.cache_resource
 def _get_worker():
     logging.debug("Creating cached _VoiceWorker singleton...")
+    return _VoiceWorker(model_path="hey_cookbook.onnx", output_file="command.wav")
+
+
+
+def _render_browser_mic(device_id=None):
+    worker = _get_worker()
+
+    # Convert whatever WebRTC provides into the exact format
+    # expected by OpenWakeWord: 16 kHz, mono, signed 16-bit PCM.
+    resampler = av.AudioResampler(
+        format="s16",
+        layout="mono",
+        rate=16000,
+    )
+
+    frame_counter = 0
+
+    def audio_frame_callback(frame):
+        nonlocal frame_counter
+
+        try:
+            converted_frames = resampler.resample(frame)
+
+            for converted in converted_frames:
+                pcm = converted.to_ndarray().reshape(-1)
+
+                if pcm.dtype != np.int16:
+                    pcm = pcm.astype(np.int16)
+
+                worker.push_browser_audio(pcm)
+
+            frame_counter += 1
+
+            if frame_counter % 100 == 0:
+                logging.info(
+                    f"Microphone active | "
+                    f"frames={frame_counter} | "
+                    f"input_rate={frame.sample_rate} | "
+                    f"input_format={frame.format.name}"
+                )
+
+        except Exception:
+            logging.exception("Microphone audio conversion failed")
+
+        return frame
+
+    audio_constraints = {
+        "echoCancellation": True,
+        "noiseSuppression": True,
+        "autoGainControl": True,
+    }
+
+    if device_id:
+        audio_constraints["deviceId"] = {
+            "exact": device_id
+        }
+
+    st.markdown(
+        """
+        <style>
+            div[data-testid="stCustomComponentV1"] {
+                position: fixed !important;
+                left: -10000px !important;
+                top: 0 !important;
+                width: 1px !important;
+                height: 1px !important;
+                opacity: 0 !important;
+                overflow: hidden !important;
+                pointer-events: none !important;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    webrtc_streamer(
+        key="passive-wake-word-mic",
+        mode=WebRtcMode.SENDONLY,
+        audio_frame_callback=audio_frame_callback,
+        media_stream_constraints={
+            "video": False,
+            "audio": audio_constraints,
+        },
+        desired_playing_state=True,
+    )
+
+@st.cache_resource
+def _get_worker():
     return _VoiceWorker(
-        model_path="hey_cookbook.onnx", device=None, output_file="command.wav"
+        model_path="hey_cookbook.onnx",
+        threshold=0.5,
+        cooldown=3.0,
     )
 
 
-def start(ui_container=None):
-    """Call this from main.py to start or resume passive listening in the background."""
+def start():
     worker = _get_worker()
     worker.start()
 
+    _render_browser_mic()
+
 
 def stop():
-    """Call this from main.py to stop passive listening and release the microphone."""
     worker = _get_worker()
     worker.stop()
