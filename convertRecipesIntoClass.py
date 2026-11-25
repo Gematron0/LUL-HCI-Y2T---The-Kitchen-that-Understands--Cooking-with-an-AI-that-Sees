@@ -10,7 +10,6 @@ import recipesClass
 
 AllRecipes = []
 
-@st.cache_resource
 def ConvertRecipesIntoClass(_AppUi):
     """
     This function converts all recipes into a class format for easier management and manipulation.
