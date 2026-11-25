@@ -1,4 +1,3 @@
-# this file contains ai
 from piper import PiperVoice
 from pathlib import Path
 import urllib.request
@@ -24,8 +23,11 @@ def _load_cached_voice() -> PiperVoice:
     if model_path.exists() and model_path.stat().st_size == 0:
         model_path.unlink()
 
-    # Download directly from Hugging Face if missing
-    base_url = "https://huggingface.co"
+    # Full path to the voice model on Hugging Face
+    base_url = (
+        "https://huggingface.co"
+        "en/en_US/lessac/medium"
+    )
     if not model_path.exists():
         logging.info("Downloading Piper ONNX model...")
         urllib.request.urlretrieve(f"{base_url}/en_US-lessac-medium.onnx", model_path)
