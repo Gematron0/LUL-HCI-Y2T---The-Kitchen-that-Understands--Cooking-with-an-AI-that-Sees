@@ -10,8 +10,8 @@ import recipesClass
 
 AllRecipes = []
 
-
-def ConvertRecipesIntoClass(AppUi):
+@st.cache_resource
+def ConvertRecipesIntoClass(_AppUi):
     """
     This function converts all recipes into a class format for easier management and manipulation.
     It reads the existing recipe files, processes them, and saves them in a structured class format.
@@ -20,7 +20,7 @@ def ConvertRecipesIntoClass(AppUi):
     logging.debug("Starting the conversion of recipes into class format.")
 
     # creating the app UI
-    ClassConversionUI = AppUi.container()
+    ClassConversionUI = _AppUi.container()
 
     AppProgressBar = ClassConversionUI.progress(0, text="Loading Recipes...")
     logging.debug("UI created for loading recipes with a progress bar.")
