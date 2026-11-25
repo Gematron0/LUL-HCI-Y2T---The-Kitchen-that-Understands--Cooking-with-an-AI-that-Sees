@@ -72,6 +72,7 @@ nvidia-nvshmem-cu13==3.7.2
 nvidia-nvtx==13.2.86
 onnxruntime==1.32.0
 opencv-python==5.0.0.93
+opencv-python-headless==5.1.0.95
 openwakeword==0.4.0
 packaging==26.3
 pandas==3.1.0
@@ -127,6 +128,7 @@ typing-inspection==0.4.5
 typing_extensions==4.16.0
 tzdata==2026.6
 ultralytics==8.4.211
+ultralytics-opencv-headless==8.4.218
 ultralytics-platform==0.1.109
 ultralytics-thop==2.2.5
 urllib3==2.8.0
