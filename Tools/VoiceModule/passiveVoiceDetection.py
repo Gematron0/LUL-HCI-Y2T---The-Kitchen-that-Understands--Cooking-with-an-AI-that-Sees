@@ -76,6 +76,7 @@ class _VoiceWorker:
         ):
             thread_to_join.join(timeout=2.0)
 
+
     def push_browser_audio(self, pcm):
 
         if pcm.dtype != np.int16:
@@ -83,18 +84,29 @@ class _VoiceWorker:
 
         CHUNK = 1280
 
-        # The WebRTC callback may provide variable-sized frames.
-        # Split them into OpenWakeWord-compatible chunks.
         if not hasattr(self, "_audio_buffer"):
             self._audio_buffer = np.array([], dtype=np.int16)
 
-        self._audio_buffer = np.concatenate((self._audio_buffer, pcm))
+        if not hasattr(self, "_audio_buffer_lock"):
+            self._audio_buffer_lock = threading.Lock()
 
-        while len(self._audio_buffer) >= CHUNK:
+        chunks = []
 
-            chunk = self._audio_buffer[:CHUNK].copy()
+        with self._audio_buffer_lock:
 
-            self._audio_buffer = self._audio_buffer[CHUNK:]
+            self._audio_buffer = np.concatenate(
+                (self._audio_buffer, pcm)
+            )
+
+            while len(self._audio_buffer) >= CHUNK:
+
+                chunk = self._audio_buffer[:CHUNK].copy()
+
+                self._audio_buffer = self._audio_buffer[CHUNK:]
+
+                chunks.append(chunk)
+
+        for chunk in chunks:
 
             try:
                 self.web_audio_queue.put_nowait(chunk)
@@ -108,12 +120,14 @@ class _VoiceWorker:
                 except queue.Empty:
                     pass
 
-            # Forward the SAME microphone audio to active detection.
             try:
                 activeVoiceDetection.feed_audio(chunk)
 
             except Exception:
-                logging.exception("Could not forward audio to active detection")
+                logging.exception(
+                    "Could not forward audio to active detection"
+                )
+
 
     def _listen_loop(self):
 

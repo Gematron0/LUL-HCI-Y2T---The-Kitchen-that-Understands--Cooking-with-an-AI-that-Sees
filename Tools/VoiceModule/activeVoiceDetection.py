@@ -1,75 +1,102 @@
+
 # activeVoiceDetection.py
 
 import threading
 import wave
 import logging
+import os
+import uuid
+
 import numpy as np
 
 import Tools.speechToText as speechToText
 import Tools.VoiceModule.quickSearch as quickSearch
 
 
-# Audio configuration
+# ============================================================
+# AUDIO CONFIGURATION
+# ============================================================
+
 SAMPLE_RATE = 16000
+CHANNELS = 1
+SAMPLE_WIDTH = 2
+
 MAX_DURATION = 7.0
 SILENCE_DURATION = 1.5
 SILENCE_THRESHOLD = 300
 
-OUTPUT_FILE = "command.wav"
+OUTPUT_DIR = "recordings"
 
-# Recording state
+
+# ============================================================
+# RECORDING STATE
+# ============================================================
+
 _recording = False
+_processing = False
+
 _audio_buffer = []
+_silence_time = 0.0
 
 _audio_lock = threading.Lock()
 _processing_lock = threading.Lock()
 
-_processing = False
-
 _latest_result = []
 _latest_input = []
 
-# Preserve your existing public result names
+# Preserve existing public result names
 LatestResult = _latest_result
 LatestInput = _latest_input
 
 
-def start():
-    """
-    Activates recording after the wake word is detected.
-    Does NOT open another microphone.
-    """
+# ============================================================
+# START ACTIVE RECORDING
+# ============================================================
 
-    global _recording, _audio_buffer
+def start():
+
+    global _recording
+    global _audio_buffer
+    global _silence_time
 
     with _audio_lock:
 
         if _recording or _processing:
-            logging.info("Recording or processing already active.")
+            logging.info(
+                "Recording or processing already active."
+            )
             return
 
         _audio_buffer = []
+        _silence_time = 0.0
+
         _recording = True
 
     logging.info("Active voice recording started.")
 
 
+# ============================================================
+# RECEIVE AUDIO FROM WEBRTC
+# ============================================================
+
 def feed_audio(chunk):
-    """
-    Receives audio frames from passiveVoiceDetection.
-    Audio format: 16 kHz, mono, int16.
-    """
 
     global _recording
-    global _audio_buffer
     global _processing
+    global _audio_buffer
+    global _silence_time
 
-    audio = np.asarray(chunk, dtype=np.int16).reshape(-1)
+    if chunk is None:
+        return
+
+    audio = np.asarray(
+        chunk,
+        dtype=np.int16
+    ).reshape(-1)
 
     if len(audio) == 0:
         return
 
-    should_finish = False
     saved_frames = None
 
     with _audio_lock:
@@ -77,27 +104,41 @@ def feed_audio(chunk):
         if not _recording:
             return
 
-        _audio_buffer.append(audio.tobytes())
+        # Store the exact audio received from WebRTC.
+        _audio_buffer.append(audio.copy())
 
-        total_samples = sum(len(frame) // 2 for frame in _audio_buffer)
+        # Calculate current recording duration.
+        total_samples = sum(
+            len(frame) for frame in _audio_buffer
+        )
 
         duration = total_samples / SAMPLE_RATE
 
-        rms = float(np.sqrt(np.mean(audio.astype(np.float32) ** 2)))
+        # Calculate RMS volume.
+        rms = float(
+            np.sqrt(
+                np.mean(
+                    audio.astype(np.float32) ** 2
+                )
+            )
+        )
 
+        # Detect silence.
         if rms < SILENCE_THRESHOLD:
-            # Count silence in seconds using actual frame length.
-            if not hasattr(feed_audio, "_silence_time"):
-                feed_audio._silence_time = 0.0
 
-            feed_audio._silence_time += len(audio) / SAMPLE_RATE
+            _silence_time += len(audio) / SAMPLE_RATE
 
         else:
-            feed_audio._silence_time = 0.0
 
-        # Avoid stopping immediately before the user speaks.
-        should_finish = duration >= MAX_DURATION or (
-            duration >= 0.5 and feed_audio._silence_time >= SILENCE_DURATION
+            _silence_time = 0.0
+
+        # Decide when to finish recording.
+        should_finish = (
+            duration >= MAX_DURATION
+            or (
+                duration >= 0.5
+                and _silence_time >= SILENCE_DURATION
+            )
         )
 
         if should_finish:
@@ -106,62 +147,141 @@ def feed_audio(chunk):
             _processing = True
 
             saved_frames = _audio_buffer.copy()
+
             _audio_buffer = []
+            _silence_time = 0.0
 
-            feed_audio._silence_time = 0.0
+            logging.info(
+                f"Recording finished. "
+                f"Duration={duration:.2f}s"
+            )
 
+    # Process outside the audio lock.
     if saved_frames is not None:
 
         threading.Thread(
-            target=process_recording, args=(saved_frames,), daemon=True
+            target=process_recording,
+            args=(saved_frames,),
+            daemon=True
         ).start()
 
 
+# ============================================================
+# SAVE AUDIO AS WAV
+# ============================================================
+
+def save_audio(frames):
+
+    if not frames:
+        raise ValueError("No audio frames received.")
+
+    os.makedirs(
+        OUTPUT_DIR,
+        exist_ok=True
+    )
+
+    filename = os.path.join(
+        OUTPUT_DIR,
+        f"command_{uuid.uuid4().hex}.wav"
+    )
+
+    raw_audio = np.concatenate(frames).astype(
+        np.int16,
+        copy=False
+    )
+
+    with wave.open(filename, "wb") as wf:
+
+        wf.setnchannels(CHANNELS)
+        wf.setsampwidth(SAMPLE_WIDTH)
+        wf.setframerate(SAMPLE_RATE)
+
+        wf.writeframes(raw_audio.tobytes())
+
+    if not os.path.isfile(filename):
+        raise IOError("WAV file was not created.")
+
+    if os.path.getsize(filename) <= 44:
+        raise IOError("WAV file contains no audio data.")
+
+    logging.info(
+        f"Recording saved: {filename}"
+    )
+
+    return filename
+
+
+# ============================================================
+# PROCESS RECORDING
+# ============================================================
+
 def process_recording(frames):
-    """
-    Saves audio, runs speech recognition and quickSearch.
-    """
 
     global _processing
+
+    filename = None
 
     try:
 
         if not frames:
+            logging.warning("Empty recording received.")
             return
 
-        filename = OUTPUT_FILE
+        # Save the audio.
+        filename = save_audio(frames)
 
-        raw_audio = b"".join(frames)
+        # Verify the filename before speech recognition.
+        if not isinstance(filename, str):
+            raise ValueError(
+                "Invalid audio filename."
+            )
 
-        with wave.open(filename, "wb") as wf:
+        if not os.path.exists(filename):
+            raise FileNotFoundError(filename)
 
-            wf.setnchannels(1)
-            wf.setsampwidth(2)
-            wf.setframerate(SAMPLE_RATE)
+        # ----------------------------------------------------
+        # SPEECH TO TEXT
+        # ----------------------------------------------------
 
-            wf.writeframes(raw_audio)
+        logging.info("Starting speech recognition.")
 
-        logging.info(f"Recording saved: {filename}")
-
-        # Speech to text
-        sentence = speechToText.SpeechToText(filename)
+        sentence = speechToText.SpeechToText(
+            filename
+        )
 
         if not sentence or not sentence.strip():
 
             logging.info("No speech recognized.")
             return
 
-        logging.info(f"Recognized text: {sentence}")
+        logging.info(
+            f"Recognized text: {sentence}"
+        )
 
-        # Determine search type
-        search_type = quickSearch.run(sentence)
+        # ----------------------------------------------------
+        # QUICK SEARCH
+        # ----------------------------------------------------
 
-        logging.info(f"Search type: {search_type}")
+        search_type = quickSearch.run(
+            sentence
+        )
 
-        # Extract information
-        result = quickSearch.infoExtraction(search_type, sentence)
+        logging.info(
+            f"Search type: {search_type}"
+        )
 
-        logging.info(f"Extracted result: {result}")
+        # ----------------------------------------------------
+        # INFORMATION EXTRACTION
+        # ----------------------------------------------------
+
+        result = quickSearch.infoExtraction(
+            search_type,
+            sentence
+        )
+
+        logging.info(
+            f"Extracted result: {result}"
+        )
 
         if result is not None:
 
@@ -172,20 +292,38 @@ def process_recording(frames):
 
     except Exception:
 
-        logging.exception("Active voice processing failed.")
+        logging.exception(
+            "Active voice processing failed."
+        )
 
     finally:
 
+        # Clean up temporary recording.
+        if filename and os.path.exists(filename):
+
+            try:
+                os.remove(filename)
+
+            except OSError:
+
+                logging.warning(
+                    f"Could not remove temporary file: {filename}"
+                )
+
         with _audio_lock:
+
             _processing = False
 
-        logging.info("Active voice processing finished.")
+        logging.info(
+            "Active voice processing finished."
+        )
 
+
+# ============================================================
+# GET RESULTS
+# ============================================================
 
 def getNextResult():
-    """
-    Returns the next available result.
-    """
 
     with _processing_lock:
 
@@ -201,16 +339,26 @@ def getNextResult():
 def areThereResults():
 
     with _processing_lock:
+
         return len(LatestResult) > 0
 
 
+# ============================================================
+# STOP ACTIVE RECORDING
+# ============================================================
+
 def stop():
 
-    global _recording, _audio_buffer
+    global _recording
+    global _audio_buffer
+    global _silence_time
 
     with _audio_lock:
 
         _recording = False
         _audio_buffer = []
+        _silence_time = 0.0
 
-    logging.info("Active recording stopped.")
+    logging.info(
+        "Active recording stopped."
+    )
