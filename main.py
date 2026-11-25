@@ -39,8 +39,6 @@ def main():
     # logging.warning(f"{AllRecipes[RecipeKeys["test3"]].Get_step(1).getStepTitle()}")
 
     # code function that you need below hear
-    quickSearch.set_intents(["List of allergens", "Go back a step"])
-    passiveVoiceDetection.start()
 
 
 if __name__ == "__main__":
