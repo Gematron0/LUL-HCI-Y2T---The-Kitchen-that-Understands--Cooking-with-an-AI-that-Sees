@@ -4,7 +4,6 @@ import os
 import time
 import streamlit as st
 import sys
-import speech_recognition as sr
 
 # file imports
 import filesInitialise
@@ -17,7 +16,6 @@ import Tools.speechToText as speechToText
 import Tools.VoiceModule.passiveVoiceDetection as passiveVoiceDetection
 import Tools.VoiceModule.activeVoiceDetection as activeVoiceDetection
 import Tools.textToSpeech as textToSpeech
-import Tools.passiveVoiceDetection as passiveVoiceDetection
 
 
 def main():
@@ -40,6 +38,7 @@ def main():
     # logging.warning(f"{AllRecipes[RecipeKeys["test3"]].Get_step(1).getStepTitle()}")
 
     # code function that you need below hear
+    passiveVoiceDetection.start()
 
 
 if __name__ == "__main__":
