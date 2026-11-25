@@ -34,7 +34,9 @@ def _record_file(
     frames = []
     silent_chunks = 0
 
-    logging.info(f"[record_audio] Recording up to {MAX_DURATION}s (or {SILENCE_DURATION}s silence)...")
+    logging.info(
+        f"[record_audio] Recording up to {MAX_DURATION}s (or {SILENCE_DURATION}s silence)..."
+    )
 
     def _capture_loop(active_stream):
         nonlocal silent_chunks
@@ -58,7 +60,9 @@ def _record_file(
                 silent_chunks = 0
 
             if i > 6 and silent_chunks >= silence_chunks_limit:
-                logging.info(f"[record_audio] Detected {SILENCE_DURATION}s of silence. Stopping early.")
+                logging.info(
+                    f"[record_audio] Detected {SILENCE_DURATION}s of silence. Stopping early."
+                )
                 break
         return True
 
@@ -86,7 +90,9 @@ def _record_file(
             wf.setframerate(rate)
             wf.writeframes(raw_audio)
 
-        logging.info(f"[record_audio] Saved recording to '{output_file}' ({len(raw_audio)} bytes).")
+        logging.info(
+            f"[record_audio] Saved recording to '{output_file}' ({len(raw_audio)} bytes)."
+        )
         if status_callback:
             status_callback("Audio saved!")
         return output_file
@@ -104,11 +110,11 @@ def _cookUnderstandProcess(worker, **kwargs):
     # 1. Record the file (waits here in the background until finished)
     saved_file = _record_file(**kwargs)
 
-    # 2. check for text 
+    # 2. check for text
     sentence = speechToText.SpeechToText(saved_file)
     logging.info(f"Recognized text: '{sentence}'")
 
-    # 3. use the small LLM with the text 
+    # 3. use the small LLM with the text
     searchType = quickSearch.run(sentence)
     logging.debug(f"search type: {searchType}")
 
@@ -135,12 +141,13 @@ def start(**kwargs):
     """Starts _cookUnderstandProcess in the background and immediately returns."""
     worker = threading.Thread(daemon=True)
     worker.command = None  # type: ignore
-    worker._target = _cookUnderstandProcess # type: ignore
-    worker._args = (worker,) # type: ignore
-    worker._kwargs = kwargs # type: ignore
-    
+    worker._target = _cookUnderstandProcess  # type: ignore
+    worker._args = (worker,)  # type: ignore
+    worker._kwargs = kwargs  # type: ignore
+
     worker.start()
     return worker
+
 
 def setVoiceCheckRequirements(intents: list[str]):
     """Modifies the intents checked during _cookUnderstandProcess."""
@@ -148,7 +155,8 @@ def setVoiceCheckRequirements(intents: list[str]):
     _voice_check_intents = list(intents)
     quickSearch.set_intents(_voice_check_intents)
 
-def getNextResult() -> tuple[str|None, str|None]:
+
+def getNextResult() -> tuple[str | None, str | None]:
     global LatestResult
     global LatestInput
 
@@ -159,6 +167,7 @@ def getNextResult() -> tuple[str|None, str|None]:
     Input = LatestInput.pop(0)
 
     return Result, Input
+
 
 def areThereResults() -> bool:
     global LatestResult

@@ -4,13 +4,15 @@ import time
 if "step" not in st.session_state:
     st.session_state.step = 1
 
+
 def go_to_page2():
     time.sleep(2)
     st.session_state.step = 2
     st.rerun()
 
+
 def back_button():
-    st.session_state.step -=1
+    st.session_state.step -= 1
     st.rerun()
 
 

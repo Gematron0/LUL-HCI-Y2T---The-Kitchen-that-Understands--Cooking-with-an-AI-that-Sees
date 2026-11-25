@@ -1,9 +1,11 @@
 import logging
 
+
 class Recipes:
     """
     A class to represent a recipe with its details.
     """
+
     def __init__(self, r_id, n, ip, x, y, nos, d, h, m) -> None:
         self.recipe_id = int(r_id)
         self.name = str(n)
@@ -84,28 +86,32 @@ class Steps:
         self.ImageCenter.append(X)
         self.ImageCenter.append(Y)
 
-        logging.debug(f"Created a new Step: {self.StepNumber}, \nWith title: {self.StepTitle} \nAnd instructions: {self.StepInstructions}")
-    
+        logging.debug(
+            f"Created a new Step: {self.StepNumber}, \nWith title: {self.StepTitle} \nAnd instructions: {self.StepInstructions}"
+        )
+
     def getStepTitle(self) -> str:
-        return self.StepTitle 
+        return self.StepTitle
 
     def getStepInstructions(self) -> str:
-        return self.StepInstructions 
+        return self.StepInstructions
 
     def getImagePath(self) -> str:
-        return self.ImagePath 
+        return self.ImagePath
 
     def getImageCenter(self) -> list:
         return self.ImageCenter
 
 
-class Ingredient():
+class Ingredient:
     def __init__(self, i, q, u) -> None:
         self.Ingredient = str(i)
         self.Quantity = float(q)
         self.Unit = str(u)
 
-        logging.debug(f"Created a new Ingredient: {self.Ingredient} with {self.Quantity} {self.Unit}")
+        logging.debug(
+            f"Created a new Ingredient: {self.Ingredient} with {self.Quantity} {self.Unit}"
+        )
 
     def getIngredient(self) -> str:
         return self.Ingredient

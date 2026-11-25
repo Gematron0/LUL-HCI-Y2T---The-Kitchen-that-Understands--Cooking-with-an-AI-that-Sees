@@ -6,6 +6,7 @@ import time
 
 Model = None
 
+
 def downlodeSpeechToTextModel() -> None:
     global Model
     Start = time.time()
@@ -13,6 +14,7 @@ def downlodeSpeechToTextModel() -> None:
     Model = WhisperModel("base")
     logging.info(f"DownLode compleat; time: {time.time()-Start}")
     return
+
 
 def SpeechToText(AudioPath) -> str:
     logging.info(f"Started speech to text")

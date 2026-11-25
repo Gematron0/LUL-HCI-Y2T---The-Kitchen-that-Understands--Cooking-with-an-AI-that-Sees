@@ -3,6 +3,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 import time
 
+
 def searchRecipes(SearchQuery, RecipesClass) -> list:
     """
     Searches thru a database to get recipes that follow citrin patters
@@ -43,15 +44,18 @@ def searchRecipes(SearchQuery, RecipesClass) -> list:
 
             # banning the result if there is an allergy conflict
             if searchType == "Allergen":
-                BannedResults.append(_searchIndividualQuery(RecipesClass, searchType, searchQuery))
+                BannedResults.append(
+                    _searchIndividualQuery(RecipesClass, searchType, searchQuery)
+                )
             else:
-                Results.append(_searchIndividualQuery(RecipesClass, searchType, searchQuery))
+                Results.append(
+                    _searchIndividualQuery(RecipesClass, searchType, searchQuery)
+                )
 
             logging.debug(f"Currently on: {searchType}; {searchQuery}")
             logging.debug(f"Results: {Results}")
             logging.debug(f"BannedResults: {BannedResults}")
 
-    
     # multiline test, this code works, I dont know if its faster since the DB is to small, this is for the future, but currently its slower
     """
     Results = []
@@ -77,7 +81,9 @@ def searchRecipes(SearchQuery, RecipesClass) -> list:
 
         for PossibleResult in Values:
             WeightedResults[PossibleResult] += 1
-            logging.debug(f"Added element for recipe ID: {PossibleResult}: #{WeightedResults[PossibleResult]}")
+            logging.debug(
+                f"Added element for recipe ID: {PossibleResult}: #{WeightedResults[PossibleResult]}"
+            )
 
     for Values in BannedResults:
         if len(Values) == 0:
@@ -86,7 +92,9 @@ def searchRecipes(SearchQuery, RecipesClass) -> list:
 
         for PossibleResult in Values:
             WeightedResults[PossibleResult] = 0
-            logging.debug(f"reset element for recipe ID: {PossibleResult}: #{WeightedResults[PossibleResult]} because it was a allergen")
+            logging.debug(
+                f"reset element for recipe ID: {PossibleResult}: #{WeightedResults[PossibleResult]} because it was a allergen"
+            )
 
     logging.debug(f"Weighted results are: {WeightedResults}")
 
@@ -102,7 +110,6 @@ def searchRecipes(SearchQuery, RecipesClass) -> list:
     logging.info(f"Time: {time.time()-StartTime}")
     logging.info(f"Search Results: {SearchResults}")
     return SearchResults
-            
 
 
 def _searchIndividualQuery(RecipesClass, searchType, SearchQuery) -> set:
@@ -118,12 +125,15 @@ def _searchIndividualQuery(RecipesClass, searchType, SearchQuery) -> set:
 
         case "Equipment":
             return _equipmentSearchType(RecipesClass, SearchQuery)
-            
+
         case "Allergen":
             return _allergenSearchType(RecipesClass, SearchQuery)
 
-    logging.error(f"Search Type: {searchType} dose not exists, returned an empty result to just continue the code, but search result will not be as accurate as expected")
+    logging.error(
+        f"Search Type: {searchType} dose not exists, returned an empty result to just continue the code, but search result will not be as accurate as expected"
+    )
     return set()
+
 
 def _allergenSearchType(RecipesClass, SearchQuery) -> set:
     ValidSearchedRecipes = set()
@@ -140,9 +150,8 @@ def _allergenSearchType(RecipesClass, SearchQuery) -> set:
             logging.debug(f"match found")
             ValidSearchedRecipes.add(Recipes.get_recipe_id())
 
-
-
     return ValidSearchedRecipes
+
 
 def _equipmentSearchType(RecipesClass, SearchQuery) -> set:
     ValidSearchedRecipes = set()
@@ -175,10 +184,11 @@ def _ingredientSearchType(RecipesClass, SearchQuery) -> set:
             logging.debug(f"{Recipe.get_name()} dose not have any ingredient, skipped")
             continue
 
-
         for IngredientObj in Ingredients:
             Ingredient = IngredientObj.getIngredient()
-            logging.debug(f"Scanning if ingredient: {Ingredient.lower()} is to {SearchQuery.lower()}")
+            logging.debug(
+                f"Scanning if ingredient: {Ingredient.lower()} is to {SearchQuery.lower()}"
+            )
             if Ingredient.lower() == SearchQuery.lower():
                 logging.debug(f"Found match: {Ingredient}")
                 ValidSearchedRecipes.add(Recipe.get_recipe_id())
@@ -192,7 +202,9 @@ def _textSearchType(RecipesClass, SearchQuery) -> set:
 
     for Recipe in RecipesClass:
         RecipeName = Recipe.get_name()
-        logging.debug(f"Scanning if recipe: {RecipeName.lower()} is to {SearchQuery.lower()}")
+        logging.debug(
+            f"Scanning if recipe: {RecipeName.lower()} is to {SearchQuery.lower()}"
+        )
 
         if SearchQuery.lower() in RecipeName.lower():
             logging.debug(f"Found {RecipeName.lower()}")
@@ -203,13 +215,16 @@ def _textSearchType(RecipesClass, SearchQuery) -> set:
 
     return ValidSearchedRecipes
 
+
 def _findPossibleSearch(SearchQuery, PossibleSearchTypes) -> list:
     SearchTypes = set()
 
     # go thr the SearchQuery keys, match it with the SearchTypesCalls keys and if true increment the SearchTypesCalls value
     for key in SearchQuery:
         if key not in PossibleSearchTypes:
-            logging.error(f"Search query contains a key that was not expected; got: {key}, needed to be {PossibleSearchTypes}")
+            logging.error(
+                f"Search query contains a key that was not expected; got: {key}, needed to be {PossibleSearchTypes}"
+            )
             raise ValueError
 
         SearchTypes.add(key)

@@ -16,11 +16,13 @@ def getRecipeInfoDefault(Name):
         "Servings": 4,
         "ExpectedTimeInDays": 0,
         "ExpectedTimeInHours": 1,
-        "ExpectedTimeInMinuets": 0
+        "ExpectedTimeInMinuets": 0,
     }
+
 
 def getEquipmentInfoDefault():
     return ["", "", ""]
+
 
 def getIngredientsInfoDefault():
     """
@@ -32,7 +34,11 @@ def getIngredientsInfoDefault():
     Returns:
     dict: A dictionary containing the default recipe information.
     """
-    return [{"ingredient": "", "amount": "", "type": ""}, {"ingredient": "", "amount": "", "type": ""}]
+    return [
+        {"ingredient": "", "amount": "", "type": ""},
+        {"ingredient": "", "amount": "", "type": ""},
+    ]
+
 
 def getAllergenInfoDefault():
     return ["", "", ""]

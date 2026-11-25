@@ -1,5 +1,6 @@
 import logging
 
+
 def getAllIngredient(RecipesClass) -> set:
 
     logging.info("Returning all ingredients")
@@ -17,6 +18,7 @@ def getAllIngredient(RecipesClass) -> set:
 
     return result
 
+
 def getAllEquipment(RecipesClass) -> set:
 
     logging.info("Returning all equipment")
@@ -30,6 +32,7 @@ def getAllEquipment(RecipesClass) -> set:
 
     logging.info(f"compleat: {result}")
     return result
+
 
 def getAllAllergen(RecipesClass) -> set:
 
