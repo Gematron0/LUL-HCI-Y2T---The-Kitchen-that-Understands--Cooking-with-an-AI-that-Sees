@@ -1,23 +1,47 @@
+# this file contains ai
 from piper import PiperVoice
-from piper.download_voices import download_voice
 from pathlib import Path
+import urllib.request
 import wave
 import base64
 import streamlit as st
 import logging
 
-
 Voice = None
+
+
+@st.cache_resource
+def _load_cached_voice() -> PiperVoice:
+    voices_dir = Path("voices")
+    voices_dir.mkdir(exist_ok=True)
+
+    model_path = voices_dir / "en_US-lessac-medium.onnx"
+    config_path = voices_dir / "en_US-lessac-medium.onnx.json"
+
+    # Remove empty or corrupted files from previous failed downloads
+    if config_path.exists() and config_path.stat().st_size == 0:
+        config_path.unlink()
+    if model_path.exists() and model_path.stat().st_size == 0:
+        model_path.unlink()
+
+    # Download directly from Hugging Face if missing
+    base_url = "https://huggingface.co"
+    if not model_path.exists():
+        logging.info("Downloading Piper ONNX model...")
+        urllib.request.urlretrieve(f"{base_url}/en_US-lessac-medium.onnx", model_path)
+    if not config_path.exists():
+        logging.info("Downloading Piper JSON config...")
+        urllib.request.urlretrieve(f"{base_url}/en_US-lessac-medium.onnx.json", config_path)
+
+    return PiperVoice.load(str(model_path), config_path=str(config_path))
 
 
 def downlodeTextToSpeechModel() -> None:
     global Voice
-    Path("voices").mkdir(exist_ok=True)
-    download_voice("en_US-lessac-medium", Path("voices"))
-    Voice = PiperVoice.load("voices/en_US-lessac-medium.onnx")
+    Voice = _load_cached_voice()
 
 
-def TextToSpeech(Text, AudioPath="speech.wav") -> str:
+def TextToSpeech(Text: str, AudioPath: str = "speech.wav") -> str:
     if Voice is None:
         downlodeTextToSpeechModel()
     with wave.open(AudioPath, "wb") as WavFile:
@@ -28,7 +52,7 @@ def TextToSpeech(Text, AudioPath="speech.wav") -> str:
     return AudioPath
 
 
-def PlayAudio(file_path: str = "speech.wav", mime_type: str = "audio/wav"):
+def PlayAudio(file_path: str = "speech.wav", mime_type: str = "audio/wav") -> None:
     logging.info(f"attempting to play audio: {file_path}")
     with open(file_path, "rb") as f:
         b64 = base64.b64encode(f.read()).decode()
