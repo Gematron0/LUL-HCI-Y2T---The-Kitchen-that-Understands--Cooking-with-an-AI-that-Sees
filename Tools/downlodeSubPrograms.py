@@ -4,6 +4,7 @@ import Tools.VoiceModule.quickSearch as quickSearch
 import Tools.textToSpeech as textToSpeech
 import streamlit as st
 
+
 @st.cache_resource
 def downlodeSubPrograms() -> None:
 

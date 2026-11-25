@@ -1,178 +1,216 @@
-# recorder.py
-import logging
+# activeVoiceDetection.py
+
 import threading
-import time
-import traceback
 import wave
+import logging
 import numpy as np
-import sounddevice as sd
 
 import Tools.speechToText as speechToText
 import Tools.VoiceModule.quickSearch as quickSearch
 
-LatestResult = []
-LatestInput = []
+
+# Audio configuration
+SAMPLE_RATE = 16000
+MAX_DURATION = 7.0
+SILENCE_DURATION = 1.5
+SILENCE_THRESHOLD = 300
+
+OUTPUT_FILE = "command.wav"
+
+# Recording state
+_recording = False
+_audio_buffer = []
+
+_audio_lock = threading.Lock()
+_processing_lock = threading.Lock()
+
+_processing = False
+
+_latest_result = []
+_latest_input = []
+
+# Preserve your existing public result names
+LatestResult = _latest_result
+LatestInput = _latest_input
 
 
-def _record_file(
-    output_file="command.wav",
-    stream=None,
-    rate=16000,
-    chunk_size=1280,
-    device=None,
-    status_callback=None,
-    should_stop=None,
-):
-    """Records audio until silence or max duration and saves it to a WAV file."""
-    MAX_DURATION = 7.0
-    SILENCE_DURATION = 1.5
-    SILENCE_THRESHOLD = 300
+def start():
+    """
+    Activates recording after the wake word is detected.
+    Does NOT open another microphone.
+    """
 
-    max_chunks = int((rate * MAX_DURATION) / chunk_size)
-    silence_chunks_limit = int((rate * SILENCE_DURATION) / chunk_size)
+    global _recording, _audio_buffer
 
-    frames = []
-    silent_chunks = 0
+    with _audio_lock:
 
-    logging.info(
-        f"[record_audio] Recording up to {MAX_DURATION}s (or {SILENCE_DURATION}s silence)..."
-    )
+        if _recording or _processing:
+            logging.info("Recording or processing already active.")
+            return
 
-    def _capture_loop(active_stream):
-        nonlocal silent_chunks
-        for i in range(max_chunks):
-            if should_stop and should_stop():
-                return False
+        _audio_buffer = []
+        _recording = True
 
-            if i % 12 == 0 and status_callback:
-                seconds_left = max(1, int(MAX_DURATION - (i * chunk_size) / rate))
-                status_callback(f"Speak now! Recording ({seconds_left}s)...")
+    logging.info("Active voice recording started.")
 
-            data, _ = active_stream.read(chunk_size)
-            frames.append(bytes(data))
 
-            audio_array = np.frombuffer(data, dtype=np.int16)
-            rms = float(np.sqrt(np.mean(audio_array.astype(np.float32) ** 2)))
+def feed_audio(chunk):
+    """
+    Receives audio frames from passiveVoiceDetection.
+    Audio format: 16 kHz, mono, int16.
+    """
 
-            if rms < SILENCE_THRESHOLD:
-                silent_chunks += 1
-            else:
-                silent_chunks = 0
+    global _recording
+    global _audio_buffer
+    global _processing
 
-            if i > 6 and silent_chunks >= silence_chunks_limit:
-                logging.info(
-                    f"[record_audio] Detected {SILENCE_DURATION}s of silence. Stopping early."
-                )
-                break
-        return True
+    audio = np.asarray(chunk, dtype=np.int16).reshape(-1)
+
+    if len(audio) == 0:
+        return
+
+    should_finish = False
+    saved_frames = None
+
+    with _audio_lock:
+
+        if not _recording:
+            return
+
+        _audio_buffer.append(audio.tobytes())
+
+        total_samples = sum(len(frame) // 2 for frame in _audio_buffer)
+
+        duration = total_samples / SAMPLE_RATE
+
+        rms = float(np.sqrt(np.mean(audio.astype(np.float32) ** 2)))
+
+        if rms < SILENCE_THRESHOLD:
+            # Count silence in seconds using actual frame length.
+            if not hasattr(feed_audio, "_silence_time"):
+                feed_audio._silence_time = 0.0
+
+            feed_audio._silence_time += len(audio) / SAMPLE_RATE
+
+        else:
+            feed_audio._silence_time = 0.0
+
+        # Avoid stopping immediately before the user speaks.
+        should_finish = duration >= MAX_DURATION or (
+            duration >= 0.5 and feed_audio._silence_time >= SILENCE_DURATION
+        )
+
+        if should_finish:
+
+            _recording = False
+            _processing = True
+
+            saved_frames = _audio_buffer.copy()
+            _audio_buffer = []
+
+            feed_audio._silence_time = 0.0
+
+    if saved_frames is not None:
+
+        threading.Thread(
+            target=process_recording, args=(saved_frames,), daemon=True
+        ).start()
+
+
+def process_recording(frames):
+    """
+    Saves audio, runs speech recognition and quickSearch.
+    """
+
+    global _processing
 
     try:
-        if stream is not None:
-            completed = _capture_loop(stream)
-        else:
-            with sd.RawInputStream(
-                samplerate=rate,
-                blocksize=chunk_size,
-                dtype="int16",
-                channels=1,
-                device=device,
-            ) as temp_stream:
-                completed = _capture_loop(temp_stream)
 
-        if not completed:
-            return None
+        if not frames:
+            return
+
+        filename = OUTPUT_FILE
 
         raw_audio = b"".join(frames)
 
-        with wave.open(output_file, "wb") as wf:
+        with wave.open(filename, "wb") as wf:
+
             wf.setnchannels(1)
             wf.setsampwidth(2)
-            wf.setframerate(rate)
+            wf.setframerate(SAMPLE_RATE)
+
             wf.writeframes(raw_audio)
 
-        logging.info(
-            f"[record_audio] Saved recording to '{output_file}' ({len(raw_audio)} bytes)."
-        )
-        if status_callback:
-            status_callback("Audio saved!")
-        return output_file
+        logging.info(f"Recording saved: {filename}")
 
-    except Exception as e:
-        logging.error(f"[record_audio] Unexpected error: {e}\n{traceback.format_exc()}")
-        if status_callback:
-            status_callback("Error saving audio.")
-        time.sleep(1.5)
-        return None
+        # Speech to text
+        sentence = speechToText.SpeechToText(filename)
 
+        if not sentence or not sentence.strip():
 
-def _cookUnderstandProcess(worker, **kwargs):
-    """Runs completely in the background: records first, then runs SpeechToText."""
-    # 1. Record the file (waits here in the background until finished)
-    saved_file = _record_file(**kwargs)
+            logging.info("No speech recognized.")
+            return
 
-    # 2. check for text
-    sentence = speechToText.SpeechToText(saved_file)
-    logging.info(f"Recognized text: '{sentence}'")
+        logging.info(f"Recognized text: {sentence}")
 
-    # 3. use the small LLM with the text
-    searchType = quickSearch.run(sentence)
-    logging.debug(f"search type: {searchType}")
+        # Determine search type
+        search_type = quickSearch.run(sentence)
 
-    # 4. if the output is known, be able to process the key information of it
-    returnValue = quickSearch.infoExtraction(searchType, sentence)
+        logging.info(f"Search type: {search_type}")
 
-    logging.info(f"Found return values: {returnValue}")
+        # Extract information
+        result = quickSearch.infoExtraction(search_type, sentence)
 
-    if returnValue != None:
-        global LatestResult
-        global LatestInput
-        LatestResult.append(returnValue)
-        LatestInput.append(searchType)
-        return
+        logging.info(f"Extracted result: {result}")
 
-    # 5. use the big LLM if needed
+        if result is not None:
 
-    # 6. make a mp3 file of the output
+            with _processing_lock:
 
-    # 7. play the file
+                LatestResult.append(result)
+                LatestInput.append(search_type)
+
+    except Exception:
+
+        logging.exception("Active voice processing failed.")
+
+    finally:
+
+        with _audio_lock:
+            _processing = False
+
+        logging.info("Active voice processing finished.")
 
 
-def start(**kwargs):
-    """Starts _cookUnderstandProcess in the background and immediately returns."""
-    worker = threading.Thread(daemon=True)
-    worker.command = None  # type: ignore
-    worker._target = _cookUnderstandProcess  # type: ignore
-    worker._args = (worker,)  # type: ignore
-    worker._kwargs = kwargs  # type: ignore
+def getNextResult():
+    """
+    Returns the next available result.
+    """
 
-    worker.start()
-    return worker
+    with _processing_lock:
 
+        if not LatestResult:
+            return None, None
 
-def setVoiceCheckRequirements(intents: list[str]):
-    """Modifies the intents checked during _cookUnderstandProcess."""
-    global _voice_check_intents
-    _voice_check_intents = list(intents)
-    quickSearch.set_intents(_voice_check_intents)
+        result = LatestResult.pop(0)
+        input_type = LatestInput.pop(0)
+
+        return result, input_type
 
 
-def getNextResult() -> tuple[str | None, str | None]:
-    global LatestResult
-    global LatestInput
+def areThereResults():
 
-    if areThereResults() == False:
-        return (None, None)
-
-    Result = LatestResult.pop(0)
-    Input = LatestInput.pop(0)
-
-    return Result, Input
+    with _processing_lock:
+        return len(LatestResult) > 0
 
 
-def areThereResults() -> bool:
-    global LatestResult
-    global LatestInput
+def stop():
 
-    if len(LatestInput) == 0 and len(LatestInput) == 0:
-        return False
-    return True
+    global _recording, _audio_buffer
+
+    with _audio_lock:
+
+        _recording = False
+        _audio_buffer = []
+
+    logging.info("Active recording stopped.")

@@ -1,20 +1,23 @@
+# passiveVoiceDetection.py
+
 import logging
 import os
 import queue
 import threading
 import time
-import traceback
+
 import av
 import numpy as np
 import streamlit as st
+
 from openwakeword.model import Model
 from streamlit_webrtc import WebRtcMode, webrtc_streamer
 
 import Tools.VoiceModule.activeVoiceDetection as activeVoiceDetection
 
 
-
 class _VoiceWorker:
+
     def __init__(
         self,
         model_path="hey_cookbook.onnx",
@@ -22,36 +25,44 @@ class _VoiceWorker:
         threshold=0.5,
         cooldown=3.0,
     ):
+
         self.model_path = model_path
         self.wake_word = os.path.splitext(os.path.basename(model_path))[0]
-        self.output_file = output_file
 
+        self.output_file = output_file
         self.threshold = threshold
         self.cooldown = cooldown
+
         self.last_trigger_time = 0.0
 
         self.running = False
         self.thread = None
+
         self.lock = threading.Lock()
 
         self.web_audio_queue = queue.Queue(maxsize=100)
-        self._resample_buffer = np.array([], dtype=np.int16)
 
     def start(self):
+
         with self.lock:
+
             if self.running:
                 return
 
             self.running = True
+
             self.thread = threading.Thread(
                 target=self._listen_loop,
                 name="VoiceListenerThread",
                 daemon=True,
             )
+
             self.thread.start()
 
     def stop(self):
+
         with self.lock:
+
             if not self.running:
                 return
 
@@ -65,84 +76,76 @@ class _VoiceWorker:
         ):
             thread_to_join.join(timeout=2.0)
 
-    def push_browser_audio(self, pcm_int16_16khz: np.ndarray):
-        self._resample_buffer = np.concatenate(
-            (self._resample_buffer, pcm_int16_16khz)
-        )
+    def push_browser_audio(self, pcm):
+
+        if pcm.dtype != np.int16:
+            pcm = pcm.astype(np.int16)
 
         CHUNK = 1280
 
-        while len(self._resample_buffer) >= CHUNK:
-            chunk = self._resample_buffer[:CHUNK]
-            self._resample_buffer = self._resample_buffer[CHUNK:]
+        # The WebRTC callback may provide variable-sized frames.
+        # Split them into OpenWakeWord-compatible chunks.
+        if not hasattr(self, "_audio_buffer"):
+            self._audio_buffer = np.array([], dtype=np.int16)
+
+        self._audio_buffer = np.concatenate((self._audio_buffer, pcm))
+
+        while len(self._audio_buffer) >= CHUNK:
+
+            chunk = self._audio_buffer[:CHUNK].copy()
+
+            self._audio_buffer = self._audio_buffer[CHUNK:]
 
             try:
                 self.web_audio_queue.put_nowait(chunk)
+
             except queue.Full:
-                # Discard the oldest audio to keep latency low.
+
                 try:
                     self.web_audio_queue.get_nowait()
                     self.web_audio_queue.put_nowait(chunk)
+
                 except queue.Empty:
                     pass
 
-    
+            # Forward the SAME microphone audio to active detection.
+            try:
+                activeVoiceDetection.feed_audio(chunk)
+
+            except Exception:
+                logging.exception("Could not forward audio to active detection")
+
     def _listen_loop(self):
+
         logging.info("Initializing OpenWakeWord...")
 
         try:
-            oww_model = Model(
-                wakeword_model_paths=[self.model_path]
-            )
 
-            logging.info(
-                f"MODEL LOADED: {self.model_path}"
-            )
+            oww_model = Model(wakeword_model_paths=[self.model_path])
 
-            logging.info(
-                f"MODEL KEYS: {list(oww_model.models.keys())}"
-            )
+            logging.info(f"MODEL LOADED: {self.model_path}")
 
-            chunk_counter = 0
+            logging.info(f"MODEL KEYS: {list(oww_model.models.keys())}")
+
             last_log_time = time.monotonic()
             max_score = 0.0
 
             while self.running:
+
                 try:
-                    audio_array = self.web_audio_queue.get(
-                        timeout=0.5
-                    )
+
+                    audio_array = self.web_audio_queue.get(timeout=0.5)
+
                 except queue.Empty:
                     continue
 
                 try:
-                    # Verify audio format.
-                    if audio_array.dtype != np.int16:
-                        logging.warning(
-                            f"Unexpected audio dtype: {audio_array.dtype}"
-                        )
 
-                    if len(audio_array) != 1280:
-                        logging.warning(
-                            f"Unexpected chunk size: {len(audio_array)}"
-                        )
-
-                    # Check microphone volume.
-                    rms = float(
-                        np.sqrt(
-                            np.mean(
-                                audio_array.astype(np.float32) ** 2
-                            )
-                        )
-                    )
+                    rms = float(np.sqrt(np.mean(audio_array.astype(np.float32) ** 2)))
 
                     prediction = oww_model.predict(audio_array)
 
-                    # Log all predictions, not just hey_cookbook.
-                    scores = {
-                        k: float(v)
-                        for k, v in prediction.items()
-                    }
+                    scores = {k: float(v) for k, v in prediction.items()}
 
                     matching_scores = [
                         value
@@ -153,12 +156,11 @@ class _VoiceWorker:
                     score = max(matching_scores, default=0.0)
 
                     max_score = max(max_score, score)
-                    chunk_counter += 1
 
-                    # Log approximately once per second.
                     now = time.monotonic()
 
                     if now - last_log_time >= 1.0:
+
                         logging.info(
                             f"WAKE DEBUG | "
                             f"RMS={rms:.1f} | "
@@ -169,50 +171,59 @@ class _VoiceWorker:
                         max_score = 0.0
                         last_log_time = now
 
-                    # Wake-word detection.
-                    if score >= self.threshold:
-                        logging.warning(
-                            f"WAKE WORD DETECTED! "
-                            f"Score={score:.5f}"
-                        )
+                    # Detect wake word.
+                    if (
+                        score >= self.threshold
+                        and now - self.last_trigger_time >= self.cooldown
+                    ):
+
+                        self.last_trigger_time = now
+
+                        logging.warning(f"WAKE WORD DETECTED! Score={score:.5f}")
 
                         try:
+
+                            # This now activates recording.
+                            # It must NOT open another microphone.
                             activeVoiceDetection.start()
+
                         except Exception:
-                            logging.exception(
-                                "Could not start active voice detection"
-                            )
+
+                            logging.exception("Could not activate command recording")
 
                         oww_model.reset()
 
                 except Exception:
-                    logging.exception(
-                        "OpenWakeWord prediction error"
-                    )
+
+                    logging.exception("OpenWakeWord prediction error")
 
         except Exception:
-            logging.exception(
-                "Fatal OpenWakeWord error"
-            )
+
+            logging.exception("Fatal OpenWakeWord error")
 
         finally:
-            self.running = False
-            logging.info("Wake-word listener stopped.")
 
+            self.running = False
+
+            logging.info("Wake-word listener stopped.")
 
 
 @st.cache_resource
 def _get_worker():
-    logging.debug("Creating cached _VoiceWorker singleton...")
-    return _VoiceWorker(model_path="hey_cookbook.onnx", output_file="command.wav")
 
+    logging.debug("Creating cached VoiceWorker singleton")
+
+    return _VoiceWorker(
+        model_path="hey_cookbook.onnx",
+        threshold=0.5,
+        cooldown=3.0,
+    )
 
 
 def _render_browser_mic(device_id=None):
+
     worker = _get_worker()
 
-    # Convert whatever WebRTC provides into the exact format
-    # expected by OpenWakeWord: 16 kHz, mono, signed 16-bit PCM.
     resampler = av.AudioResampler(
         format="s16",
         layout="mono",
@@ -222,30 +233,36 @@ def _render_browser_mic(device_id=None):
     frame_counter = 0
 
     def audio_frame_callback(frame):
+
         nonlocal frame_counter
 
         try:
+
             converted_frames = resampler.resample(frame)
 
             for converted in converted_frames:
+
                 pcm = converted.to_ndarray().reshape(-1)
 
                 if pcm.dtype != np.int16:
                     pcm = pcm.astype(np.int16)
 
+                # One microphone source.
+                # Both passive and active detection receive these frames.
                 worker.push_browser_audio(pcm)
 
             frame_counter += 1
 
             if frame_counter % 100 == 0:
+
                 logging.info(
                     f"Microphone active | "
                     f"frames={frame_counter} | "
-                    f"input_rate={frame.sample_rate} | "
-                    f"input_format={frame.format.name}"
+                    f"input_rate={frame.sample_rate}"
                 )
 
         except Exception:
+
             logging.exception("Microphone audio conversion failed")
 
         return frame
@@ -257,9 +274,8 @@ def _render_browser_mic(device_id=None):
     }
 
     if device_id:
-        audio_constraints["deviceId"] = {
-            "exact": device_id
-        }
+
+        audio_constraints["deviceId"] = {"exact": device_id}
 
     st.markdown(
         """
@@ -290,22 +306,18 @@ def _render_browser_mic(device_id=None):
         desired_playing_state=True,
     )
 
-@st.cache_resource
-def _get_worker():
-    return _VoiceWorker(
-        model_path="hey_cookbook.onnx",
-        threshold=0.5,
-        cooldown=3.0,
-    )
-
 
 def start():
+
     worker = _get_worker()
+
     worker.start()
 
     _render_browser_mic()
 
 
 def stop():
+
     worker = _get_worker()
+
     worker.stop()

@@ -10,7 +10,6 @@ import convertRecipesIntoClass
 
 
 # downloading the model
-DEFAULT_INTENTS = ["allergens", "cooking equipment", "idk", "customer support"]
 _classifier = None
 
 
@@ -60,29 +59,48 @@ def run(sentence: str) -> str | None:
     return str(top_intent)
 
 
-# info extraction
+# Info extraction
 def infoExtraction(type, sentence: str):
 
-    CleanSentence = f" {re.sub(r'[^\w\s]', '', sentence.lower())} "
+    CleanSentence = re.sub(r"[^\w\s]", "", sentence.lower())
 
     match type:
+
         case None:
             return None
 
         case "List of allergens":
+
             FoundItems = set()
-            for item in (
-                x.lower()
-                for x in getAllItems.getAllAllergen(
-                    convertRecipesIntoClass.get_recipes()
+
+            allergens = getAllItems.getAllAllergen(
+                convertRecipesIntoClass.get_recipes()
+            )
+
+            for item in allergens:
+
+                item = item.lower().strip()
+
+                # Match complete words, including multi-word allergens.
+                pattern = rf"(?<!\w){re.escape(item)}(?!\w)"
+
+                logging.debug(
+                    f"Comparing allergen '{item}' " f"with sentence '{CleanSentence}'"
                 )
-            ):
-                logging.debug(f"comparing {item} with {CleanSentence}")
-                if f" {item} " in CleanSentence:
+
+                if re.search(pattern, CleanSentence):
                     FoundItems.add(item)
 
-                return FoundItems
+            logging.info(f"Found allergens: {FoundItems}")
+
+            return FoundItems
 
         case "Go back a step":
-            return ""
 
+            return None
+
+        case _:
+
+            logging.warning(f"Unknown extraction type: {type}")
+
+            return None
