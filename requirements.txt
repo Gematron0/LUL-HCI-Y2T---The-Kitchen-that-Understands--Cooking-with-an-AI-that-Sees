@@ -71,7 +71,6 @@ nvidia-nvjitlink==13.5.37
 nvidia-nvshmem-cu13==3.7.2
 nvidia-nvtx==13.2.86
 onnxruntime==1.32.0
-opencv-python==5.0.0.93
 opencv-python-headless==5.1.0.95
 openwakeword==0.4.0
 packaging==26.3
