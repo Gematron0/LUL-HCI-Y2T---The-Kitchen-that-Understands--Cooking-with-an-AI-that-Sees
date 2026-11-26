@@ -1,3 +1,5 @@
+# this file contains AI
+
 import base64
 import random
 import time
