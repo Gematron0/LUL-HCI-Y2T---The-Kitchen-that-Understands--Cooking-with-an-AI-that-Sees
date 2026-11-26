@@ -4,6 +4,7 @@ import os
 import time
 import streamlit as st
 import sys
+import psutil
 
 # file imports
 import filesInitialise
@@ -42,6 +43,13 @@ def main():
     """
     welcome to the cookbook app
     """
+
+    while True:
+        time.sleep(10)
+        process = psutil.Process(os.getpid())
+        mem_mb = process.memory_info().rss / (1024 * 1024)
+        logging.info(f"memory amount: {mem_mb}")
+
 
 
 if __name__ == "__main__":
