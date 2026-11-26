@@ -229,9 +229,6 @@ yolov8x-worldv2.pt
 # ai
 *.pt 
 
-# imamges
-*.jpg
-
 # audio
 *.mp3
 *.wav

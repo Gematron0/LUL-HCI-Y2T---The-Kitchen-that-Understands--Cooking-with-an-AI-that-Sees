@@ -28,17 +28,23 @@ def main():
 
     placeholder, masterProgressBar, subProgressBar = StartupLoadingUI.start(AppUi)
 
+
     # check the files to see if they exist and if not, create them
-    filesInitialise.CheckIfRootFileExists()
+    masterProgressBar.progress(0, text="checking files")
+    filesInitialise.CheckIfRootFileExists(subProgressBar)
 
     # download all dependence
-    downlodeSubPrograms.downlodeSubPrograms()
-
-    # creating the ui
+    masterProgressBar.progress(34, text="testing neral networks")
+    downlodeSubPrograms.downlodeSubPrograms(subProgressBar)
+        
 
     # lode up all the recipes so that it can get displayed inside of the streamlit app into a class
-    AllRecipes, RecipeKeys = convertRecipesIntoClass.ConvertRecipesIntoClass(AppUi)
+    masterProgressBar.progress(67, text="updating recipes")
+    AllRecipes, RecipeKeys = convertRecipesIntoClass.ConvertRecipesIntoClass(subProgressBar)
 
+    subProgressBar.progress(100)
+    masterProgressBar.progress(100, text="compleat!!")
+    time.sleep(1)
     StartupLoadingUI.stop(placeholder)
 
     # how to get elements form the class

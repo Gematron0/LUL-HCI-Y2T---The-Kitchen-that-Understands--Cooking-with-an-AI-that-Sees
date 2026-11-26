@@ -4,8 +4,9 @@ from ultralytics import YOLO
 from ultralytics.engine.results import Results as YOLOResults
 import logging
 import time
+import streamlit as st
 
-
+@st.cache_resource(show_spinner=False)
 def downlodeIngredientScannerModel() -> None:
     Start = time.time()
     logging.info(f"Downloading yolov8x-worldv2.pt")

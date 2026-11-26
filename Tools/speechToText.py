@@ -5,8 +5,9 @@ import logging
 import time
 
 Model = None
+import streamlit as st
 
-
+@st.cache_resource(show_spinner=False)
 def downlodeSpeechToTextModel() -> None:
     global Model
     Start = time.time()

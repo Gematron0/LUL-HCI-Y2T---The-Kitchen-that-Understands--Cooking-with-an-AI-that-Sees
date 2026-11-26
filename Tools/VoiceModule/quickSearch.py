@@ -4,6 +4,7 @@ from transformers import pipeline
 import logging
 import time
 import re
+import streamlit as st
 
 import Tools.getAllItems as getAllItems
 import convertRecipesIntoClass
@@ -11,8 +12,7 @@ import convertRecipesIntoClass
 
 # downloading the model
 _classifier = None
-
-
+@st.cache_resource
 def _get_classifier():
     """Lazy-loads the model once so it doesn't reload on every run()."""
     global _classifier
@@ -22,7 +22,7 @@ def _get_classifier():
         )
     return _classifier
 
-
+@st.cache_resource(show_spinner=False)
 def downlodeQuickUnderstand():
     _get_classifier()
 

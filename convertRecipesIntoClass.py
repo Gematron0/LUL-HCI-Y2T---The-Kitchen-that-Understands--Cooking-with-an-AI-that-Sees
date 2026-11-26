@@ -10,18 +10,17 @@ import recipesClass
 
 AllRecipes = []
 
-def ConvertRecipesIntoClass(_AppUi):
+def ConvertRecipesIntoClass(_subProgressBar):
     """
     This function converts all recipes into a class format for easier management and manipulation.
     It reads the existing recipe files, processes them, and saves them in a structured class format.
     It also worked on the UI for the streamlit app to show a progress bar while loading the recipes.
     """
     logging.debug("Starting the conversion of recipes into class format.")
+    _subProgressBar.progress(0)
 
     # creating the app UI
-    ClassConversionUI = _AppUi.container()
 
-    AppProgressBar = ClassConversionUI.progress(0, text="Loading Recipes...")
     logging.debug("UI created for loading recipes with a progress bar.")
 
     # saveing the recipes into a class format
@@ -44,9 +43,7 @@ def ConvertRecipesIntoClass(_AppUi):
 
         # update the apps progress bar
         percentage = round((index / NumberOfRecipes), 2)
-        AppProgressBar.progress(
-            percentage, text=f"Loading Recipes... ({index}/{NumberOfRecipes})"
-        )
+        _subProgressBar.progress(percentage)
 
         logging.debug(f"Checking recipe {RecipeID}")
 
@@ -145,8 +142,6 @@ def ConvertRecipesIntoClass(_AppUi):
         AllRecipes.append(Recipe)
         RecipeKeys[RecipeName] = len(AllRecipes) - 1
 
-    AppProgressBar.empty()
-    ClassConversionUI.empty()
     logging.debug(f"{RecipeKeys}")
     logging.info(f"Finished converting recipes")
 

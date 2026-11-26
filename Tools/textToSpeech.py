@@ -9,7 +9,7 @@ import logging
 Voice = None
 
 
-@st.cache_resource
+@st.cache_resource(show_spinner=False)
 def _load_cached_voice() -> PiperVoice:
     voices_dir = Path("voices")
     voices_dir.mkdir(exist_ok=True)
@@ -28,7 +28,7 @@ def _load_cached_voice() -> PiperVoice:
 
     return PiperVoice.load(model_path, config_path=config_path)
 
-
+@st.cache_resource(show_spinner=False)
 def downlodeTextToSpeechModel() -> None:
     global Voice
     Voice = _load_cached_voice()
