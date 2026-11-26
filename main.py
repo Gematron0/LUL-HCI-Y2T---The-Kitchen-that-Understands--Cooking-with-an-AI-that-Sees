@@ -19,9 +19,14 @@ import Tools.VoiceModule.activeVoiceDetection as activeVoiceDetection
 import Tools.textToSpeech as textToSpeech
 import Tools.VoiceModule.quickSearch as quickSearch
 
+import UI.StartupLoadingUI as StartupLoadingUI
+
 
 def main():
     logging.debug(f"Program started! [PID: {os.getpid()}]")
+    AppUi = st.container()
+
+    placeholder, masterProgressBar, subProgressBar = StartupLoadingUI.start(AppUi)
 
     # check the files to see if they exist and if not, create them
     filesInitialise.CheckIfRootFileExists()
@@ -30,10 +35,11 @@ def main():
     downlodeSubPrograms.downlodeSubPrograms()
 
     # creating the ui
-    AppUi = st.container()
 
     # lode up all the recipes so that it can get displayed inside of the streamlit app into a class
     AllRecipes, RecipeKeys = convertRecipesIntoClass.ConvertRecipesIntoClass(AppUi)
+
+    StartupLoadingUI.stop(placeholder)
 
     # how to get elements form the class
     # logging.warning(f"{AllRecipes[RecipeKeys["test3"]].GetTotalSteps()}")
