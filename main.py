@@ -27,6 +27,7 @@ def main():
     AppUi = st.container()
 
     placeholder, masterProgressBar, subProgressBar = StartupLoadingUI.start(AppUi)
+    StartTime = time.time()
 
 
     # check the files to see if they exist and if not, create them
@@ -44,7 +45,13 @@ def main():
 
     subProgressBar.progress(100)
     masterProgressBar.progress(100, text="compleat!!")
-    time.sleep(1)
+
+    # make it so that if it lodes to fast, it skips the 1 second wait to display that it completed
+    logging.info(f"Startup time is : {time.time() - StartTime}")
+    if time.time() - StartTime >= 1:
+        logging.debug(f"waiting one extra second")
+        time.sleep(1)
+    
     StartupLoadingUI.stop(placeholder)
 
     # how to get elements form the class
